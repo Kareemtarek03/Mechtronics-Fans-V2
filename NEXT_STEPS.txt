@@ -1,12 +1,12 @@
 ================================================================================
-MECHA-EG FULLSTACK - NEXT STEPS FOR RENDER.COM DEPLOYMENT
+MECHA-EG FULLSTACK - NEXT STEPS FOR RAILWAY.COM DEPLOYMENT
 ================================================================================
 
 CURRENT STATUS:
 ✅ Project structure created in: C:\Users\hp\Desktop\Mecha-Eg-Fullstack
 ✅ Backend code configured
 ✅ Server setup to serve React frontend
-✅ Render.com configuration files ready
+✅ Railway.com configuration files ready
 ✅ Deployment scripts created
 
 WHAT YOU NEED TO DO:
@@ -51,18 +51,15 @@ git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
 git branch -M main
 git push -u origin main
 
-STEP 4: DEPLOY ON RENDER.COM
+STEP 4: DEPLOY ON RAILWAY.COM
 ----------------------------
-1. Go to https://render.com
+1. Go to https://railway.app
 2. Sign up/Login with GitHub
-3. Click "New +" → "Web Service"
-4. Connect your GitHub repository
-5. Configure:
-   - Name: mecha-eg-fullstack
-   - Build Command: npm run render-build
-   - Start Command: npm start
-6. Click "Create Web Service"
-7. Wait for deployment (5-10 minutes)
+3. Click "New Project" → "Deploy from GitHub repo"
+4. Select your GitHub repository
+5. Click "Deploy Now"
+6. Wait for deployment (3-5 minutes)
+7. Go to Settings → Domains → Generate Domain
 8. Access your app at the provided URL!
 
 ================================================================================
@@ -85,10 +82,10 @@ In Mecha-Eg-Fullstack/:
 - client/                → Frontend (React) - NEEDS FILES COPIED
 
 ================================================================================
-RENDER.COM BUILD PROCESS:
+RAILWAY.COM BUILD PROCESS:
 ================================================================================
 
-When you deploy, Render will:
+When you deploy, Railway will:
 1. Run: npm install (backend dependencies)
 2. Run: cd client && npm install (frontend dependencies)
 3. Run: cd client && npm run build (build React app)
@@ -106,11 +103,11 @@ TROUBLESHOOTING:
 Issue: Copy script doesn't work
 Solution: Manually copy files as described in QUICK_START.md
 
-Issue: Build fails on Render
+Issue: Build fails on Railway
 Solution: Check logs, ensure all files are committed to Git
 
-Issue: App works locally but not on Render
-Solution: Check Render logs, verify file paths are relative
+Issue: App works locally but not on Railway
+Solution: Check Railway logs, verify file paths are relative
 
 Issue: "Cannot find module" errors
 Solution: Ensure output.json and MotorData.json are in server/ folder

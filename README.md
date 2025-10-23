@@ -63,42 +63,46 @@ Then start the server which will serve the built React app:
 npm start
 ```
 
-## Deployment on Render.com
+## Deployment on Railway.com
 
-### Option 1: Using Render Dashboard
+### Quick Deployment Steps
 
 1. **Push code to GitHub:**
    - Create a new repository on GitHub
    - Push the `Mecha-Eg-Fullstack` folder to the repository
 
-2. **Create Web Service on Render:**
-   - Go to [Render Dashboard](https://dashboard.render.com/)
-   - Click "New +" → "Web Service"
-   - Connect your GitHub repository
-   - Configure:
-     - **Name:** mecha-eg-fullstack
-     - **Environment:** Node
-     - **Build Command:** `npm run render-build`
-     - **Start Command:** `npm start`
-     - **Instance Type:** Free (or your preferred tier)
+2. **Deploy on Railway:**
+   - Go to [Railway.app](https://railway.app)
+   - Sign in with GitHub
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select your repository
+   - Click "Deploy Now"
 
-3. **Deploy:**
-   - Click "Create Web Service"
-   - Render will automatically build and deploy your app
+3. **Get Your URL:**
+   - Go to Settings → Domains
+   - Click "Generate Domain"
+   - Your app will be live at: `https://your-app.up.railway.app`
 
-### Option 2: Using render.yaml (Infrastructure as Code)
+Railway will automatically:
+- ✅ Detect Node.js project
+- ✅ Run `npm run render-build` (build command)
+- ✅ Start with `npm start`
+- ✅ Provide HTTPS and custom domain support
 
-1. Push your code with the `render.yaml` file to GitHub
-2. In Render Dashboard:
-   - Click "New +" → "Blueprint"
-   - Connect your repository
-   - Render will automatically detect and use the `render.yaml` configuration
+### Configuration Files
+
+The project includes Railway-specific configuration:
+- `railway.json` - Railway deployment settings
+- `nixpacks.toml` - Build configuration
+- `Procfile` - Process definition
 
 ### Environment Variables
 
-If needed, add environment variables in Render Dashboard:
-- `NODE_ENV=production` (automatically set)
-- `PORT` (automatically set by Render)
+Railway automatically sets:
+- `NODE_ENV=production`
+- `PORT` (auto-assigned)
+
+Add custom variables in Railway Dashboard → Variables tab if needed.
 
 ## API Endpoints
 
