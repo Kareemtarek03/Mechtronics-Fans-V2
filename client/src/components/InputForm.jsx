@@ -410,7 +410,7 @@ export default function ProcessFanDataForm() {
                   const poles =
                     motor.NoPoles || (motor.NoPoles === 0 ? 0 : null);
                   if (speed && poles) {
-                    motorFreq = (speed * poles) / 120; // approximate synchronous frequency
+                    // motorFreq = (speed * poles) / 120; // approximate synchronous frequency (unused)
                   }
                   if (Array.isArray(motor.effCurve) && motor.effCurve.length) {
                     motorEffAvg =

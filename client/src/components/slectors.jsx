@@ -4,7 +4,6 @@ import {
   Text,
   Portal,
   Select,
-  createListCollection,
 } from "@chakra-ui/react";
 
 export default function UnitSelect({
