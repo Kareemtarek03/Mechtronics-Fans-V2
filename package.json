@@ -1,0 +1,28 @@
+{
+  "name": "mecha-eg-fullstack",
+  "version": "1.0.0",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "build": "cd client && npm install && npm run build",
+    "install-all": "npm install && cd client && npm install",
+    "render-build": "npm install && cd client && npm install && npm run build"
+  },
+  "keywords": [],
+  "author": "Belal Elrashidy",
+  "license": "ISC",
+  "description": "Mecha-Eg Full Stack Application",
+  "dependencies": {
+    "cubic-spline": "^3.0.3",
+    "express": "^5.1.0",
+    "fs": "^0.0.1-security",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "nodemon": "^3.1.10"
+  }
+}
