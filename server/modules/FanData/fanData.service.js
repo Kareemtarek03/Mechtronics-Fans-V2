@@ -384,13 +384,12 @@ export async function Output({ units, input }) {
       .map((fan) => {
         const blades = fan.Blades || {};
         const impeller = fan.Impeller || {};
-        const test = "\\";
-        const FanModel = String.raw`${units.fanType || ""}-${
+        const FanModel = `${units.fanType || ""}-${
           impeller.innerDia || ""
-        }-${blades.noBlades || ""}${test}${blades.angle || ""}${test}${
+        }-${blades.noBlades || ""}\\${blades.angle || ""}\\${
           blades.material || ""
         }${blades.symbol || ""}-${noPoles}${
-          input.NoPhases == 3 ? "T" : "M" || ""
+          input.NoPhases == 3 ? "T" : "M"
         }`;
 
         return { FanModel, ...fan };
