@@ -1,9 +1,4 @@
 import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Calculate density based on temperature
 function calcDensity(tempC) {
@@ -125,9 +120,7 @@ function recalcFanPerformance(fan, input) {
 export function processFanDataService(inputOptions) {
   const { filePath, units, input } = inputOptions;
 
-  // Resolve file path relative to server directory
-  const resolvedPath = path.resolve(__dirname, '..', '..', filePath);
-  const data = JSON.parse(fs.readFileSync(resolvedPath, "utf8"));
+  const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
   const convertedData = data.map((fan) => convertFanUnits(fan, units));
   const recalculatedData = convertedData.map((fan) =>
     recalcFanPerformance(fan, input)
@@ -383,12 +376,12 @@ export async function Output({ units, input }) {
       if (rpm > 1500 && rpm <= 3000) return 2;
       return "";
     }
+    const noPoles = calcNoPoles(input.RPM);
 
     // Add FanModel property to each filtered fan
     const filtered = (candidates || [])
       .filter(hasValidPredictions)
       .map((fan) => {
-        const noPoles = calcNoPoles(input.RPM);
         const blades = fan.Blades || {};
         const impeller = fan.Impeller || {};
         const test = "\\";
@@ -406,8 +399,7 @@ export async function Output({ units, input }) {
     // Load motor database and attach nearest motor by netpower to each fan
     let motors = [];
     try {
-      const motorDataPath = path.resolve(__dirname, '..', '..', 'MotorData.json');
-      const motorsRaw = fs.readFileSync(motorDataPath, "utf8");
+      const motorsRaw = fs.readFileSync("MotorData.json", "utf8");
       motors = JSON.parse(motorsRaw);
     } catch (err) {
       // if file missing or parse error, continue without matching
@@ -455,7 +447,11 @@ export async function Output({ units, input }) {
           m.netpower ?? m.netPower ?? m.powerKW ?? m.powerKw ?? m.powerKw;
         const net = Number(netRaw);
         if (!Number.isFinite(net)) continue;
-        if (net >= fPowerFinal) candidatesAbove.push({ m, net });
+        if (
+          net >= fPowerFinal * (1 + input.Safety / 100) &&
+          noPoles == m.NoPoles
+        )
+          candidatesAbove.push({ m, net });
       }
 
       if (candidatesAbove.length === 0) {
@@ -483,7 +479,20 @@ export async function Output({ units, input }) {
     };
 
     const withMatches = filtered.map(attachClosestMotor);
-    return withMatches;
+
+    // Sort final results by predictions.FanTotalEfficiencyPred (descending).
+    const getEff = (item) => {
+      const p =
+        item.predictions?.FanTotalEfficiencyPred ??
+        item.predictions?.FanTotalEfficiency ??
+        null;
+      if (typeof p === "number" && !Number.isNaN(p)) return p;
+      const parsed = Number(p);
+      return Number.isFinite(parsed) ? parsed : -Infinity;
+    };
+
+    const sorted = withMatches.sort((a, b) => getEff(b) - getEff(a));
+    return sorted;
   } catch (error) {
     console.error("❌ Fan data processing failed:", error);
     throw new Error(`Error`);

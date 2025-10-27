@@ -26,13 +26,14 @@ export default function ProcessFanDataForm() {
     airFlow: null,
     staticPressure: null,
     NoPhases: null,
+    Safety: null,
   });
   const [result, setResult] = useState(null);
   const [message, setMessage] = useState(null);
 
   const DEFAULTS = {
     units: { airFlow: "CFM", pressure: "Pa", power: "kW", fanType: "AF-L" },
-    input: { RPM: 1440, TempC: 20, NoPhases: 3, SPF: 5 },
+    input: { RPM: 1440, TempC: 20, NoPhases: 3, SPF: 5, Safety: 5 },
   };
 
   const handleInputChange = (e) => {
@@ -68,13 +69,13 @@ export default function ProcessFanDataForm() {
         NoPhases: parseFloat(input.NoPhases) || DEFAULTS.input.NoPhases,
         staticPressure: parseFloat(input.staticPressure),
         SPF: parseInt(input.SPF) || DEFAULTS.input.SPF,
+        Safety: parseInt(input.Safety) || DEFAULTS.input.Safety,
       },
     };
 
     try {
-      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || '';
       const resp = await fetch(
-        `${apiBaseUrl}/api/fan-data/filter`,
+        `${process.env.REACT_APP_API_BASE_URL}/api/fan-data/filter`,
         {
           method: "POST",
           headers: {
@@ -184,24 +185,6 @@ export default function ProcessFanDataForm() {
                   placeholder="Select Fan Type"
                 />
               </Box>
-              <Box flex="1">
-                <Text fontWeight="semibold" mb={2}>
-                  S.P.F
-                </Text>
-                {!input.SPF &&
-                  getDefaultForField("input", "SPF") !== undefined && (
-                    <Text fontSize="xs" color="gray.500" mt={1}>
-                      Default: {getDefaultForField("input", "SPF")}
-                    </Text>
-                  )}
-                <Input
-                  name="SPF"
-                  type="number"
-                  value={input.SPF}
-                  onChange={handleInputChange}
-                  placeholder="e.g. 5"
-                />
-              </Box>
             </Stack>
             {/* Input Values */}
 
@@ -306,7 +289,43 @@ export default function ProcessFanDataForm() {
                   </Box>
                 </Stack>
               </Box>
-              <Box flex={2}></Box>
+              <Box flex={2} bg={"gray.100"} borderRadius={8} p={3}>
+                <Text fontWeight="semibold" mb={2} textAlign={"center"}>
+                  Factors
+                </Text>
+                <Stack direction="row" spacing={2}>
+                  <Box flex="1">
+                    <Text fontWeight="semibold" mb={2}>
+                      Static Pressure Variance (%)
+                    </Text>
+                    <Text fontSize="xs" color="gray.500" mt={1}>
+                      Default: {getDefaultForField("input", "SPF")}
+                    </Text>
+                    <Input
+                      name="SPF"
+                      type="number"
+                      value={input.SPF}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 5"
+                    />
+                  </Box>
+                  <Box flex="1">
+                    <Text fontWeight="semibold" mb={2}>
+                      S.P.F (%)
+                    </Text>
+                    <Text fontSize="xs" color="gray.500" mt={1}>
+                      Default: {getDefaultForField("input", "Safety")}
+                    </Text>
+                    <Input
+                      name="Safety"
+                      type="number"
+                      value={input.Safety}
+                      onChange={handleInputChange}
+                      placeholder="e.g. 5"
+                    />
+                  </Box>
+                </Stack>
+              </Box>
             </Stack>
             <Stack direction={{ base: "column", md: "row" }} spacing={4}>
               <Box flex="1"></Box>
@@ -403,8 +422,15 @@ export default function ProcessFanDataForm() {
 
                 // matched motor info
                 const motor = item.matchedMotor;
+                let motorFreq = null;
                 let motorEffAvg = null;
                 if (motor) {
+                  const speed = motor.speedRPM || motor.speed || null;
+                  const poles =
+                    motor.NoPoles || (motor.NoPoles === 0 ? 0 : null);
+                  if (speed && poles) {
+                    motorFreq = (speed * poles) / 120; // approximate synchronous frequency
+                  }
                   if (Array.isArray(motor.effCurve) && motor.effCurve.length) {
                     motorEffAvg =
                       motor.effCurve.reduce((a, b) => a + b, 0) /
@@ -483,11 +509,49 @@ export default function ProcessFanDataForm() {
                             <Text fontSize="sm" fontWeight="semibold">
                               Predictions
                             </Text>
-                            {Object.entries(item.predictions).map(([k, v]) => (
-                              <Text key={k} fontSize="sm">
-                                {k}: {formatValue(v)}
+                            <Box mt={1}>
+                              <Text fontSize="sm">
+                                <b>Static Pressure:</b>{" "}
+                                {item.predictions.StaticPressurePred
+                                  ? `${item.predictions.StaticPressurePred.toFixed(
+                                      2
+                                    )}`
+                                  : ""}
                               </Text>
-                            ))}
+                              <Text fontSize="sm">
+                                <b>Fan Input Power:</b>{" "}
+                                {item.predictions.FanInputPowerPred.toFixed(2)}{" "}
+                                {units.power ||
+                                  getDefaultForField("units", "power")}
+                              </Text>
+                              <Text fontSize="sm">
+                                <b>Velocity Pressure:</b>{" "}
+                                {item.predictions.VelocityPressurePred
+                                  ? `${item.predictions.VelocityPressurePred.toFixed(
+                                      2
+                                    )}`
+                                  : ""}
+                              </Text>
+                              <Text fontSize="sm">
+                                <b>Static Efficiency:</b>{" "}
+                                {item.predictions.FanStaticEfficiencyPred
+                                  ? `${(
+                                      item.predictions.FanStaticEfficiencyPred *
+                                      100
+                                    ).toFixed(2)}%`
+                                  : ""}
+                              </Text>
+
+                              <Text fontSize="sm">
+                                <b>Total Efficiency:</b>{" "}
+                                {item.predictions.FanTotalEfficiencyPred
+                                  ? `${(
+                                      item.predictions.FanTotalEfficiencyPred *
+                                      100
+                                    ).toFixed(2)}%`
+                                  : ""}
+                              </Text>
+                            </Box>
                           </Box>
                         )}
                       </Box>
