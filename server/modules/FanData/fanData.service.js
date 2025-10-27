@@ -1,4 +1,9 @@
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Calculate density based on temperature
 function calcDensity(tempC) {
@@ -120,7 +125,11 @@ function recalcFanPerformance(fan, input) {
 export function processFanDataService(inputOptions) {
   const { filePath, units, input } = inputOptions;
 
-  const data = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  // Resolve file path relative to server directory
+  const resolvedPath = path.isAbsolute(filePath) 
+    ? filePath 
+    : path.join(__dirname, '..', '..', filePath);
+  const data = JSON.parse(fs.readFileSync(resolvedPath, "utf8"));
   const convertedData = data.map((fan) => convertFanUnits(fan, units));
   const recalculatedData = convertedData.map((fan) =>
     recalcFanPerformance(fan, input)
@@ -398,7 +407,8 @@ export async function Output({ units, input }) {
     // Load motor database and attach nearest motor by netpower to each fan
     let motors = [];
     try {
-      const motorsRaw = fs.readFileSync("MotorData.json", "utf8");
+      const motorDataPath = path.join(__dirname, '..', '..', 'MotorData.json');
+      const motorsRaw = fs.readFileSync(motorDataPath, "utf8");
       motors = JSON.parse(motorsRaw);
     } catch (err) {
       // if file missing or parse error, continue without matching
@@ -443,7 +453,7 @@ export async function Output({ units, input }) {
       const candidatesAbove = [];
       for (const m of motors) {
         const netRaw =
-          m.netpower ?? m.netPower ?? m.powerKW ?? m.powerKw ?? m.powerKw;
+          m.netpower ?? m.netPower ?? m.powerKW ?? m.powerKw;
         const net = Number(netRaw);
         if (!Number.isFinite(net)) continue;
         if (
@@ -467,10 +477,10 @@ export async function Output({ units, input }) {
 
       const matched = {
         model: best.model ?? best.Model ?? null,
-        powerKW: best.powerKW ?? best.powerKw ?? best.powerKW ?? null,
+        powerKW: best.powerKW ?? best.powerKw ?? null,
         netpower: best.netpower ?? best.netPower ?? null,
-        frameSize: best.frameSize ?? best.frameSize ?? null,
-        powerHorse: best.powerHorse ?? best.powerHorse ?? null,
+        frameSize: best.frameSize ?? null,
+        powerHorse: best.powerHorse ?? null,
       };
       fan.FanModel += `-${matched.powerHorse || ""}`;
 

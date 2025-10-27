@@ -405,7 +405,6 @@ export default function ProcessFanDataForm() {
                   desigDensity: item.desigDensity,
                   InputDensity: item.InputDensity,
                 };
-                console.log(summaryFields.InputDensity);
 
                 // blades and impeller human readable
                 const blades = item.Blades
@@ -482,7 +481,7 @@ export default function ProcessFanDataForm() {
                             </Text>
                             <Text fontSize="sm">
                               <b>Volt / Phase / Freq:</b>{" "}
-                              {motor.Phase === 1 ? "220" : "380" || "-"} /{" "}
+                              {motor.Phase === 1 ? "220" : motor.Phase === 3 ? "380" : "-"} /{" "}
                               {motor.Phase || "-"} / 50 Hz
                             </Text>
                             <Text fontSize="sm">
@@ -514,7 +513,7 @@ export default function ProcessFanDataForm() {
                               </Text>
                               <Text fontSize="sm">
                                 <b>Fan Input Power:</b>{" "}
-                                {item.predictions.FanInputPowerPred.toFixed(2)}{" "}
+                                {item.predictions.FanInputPowerPred?.toFixed(2) || "-"}{" "}
                                 {units.power ||
                                   getDefaultForField("units", "power")}
                               </Text>
