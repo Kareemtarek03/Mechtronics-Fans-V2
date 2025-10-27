@@ -74,8 +74,9 @@ export default function ProcessFanDataForm() {
     };
 
     try {
+      const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || '';
       const resp = await fetch(
-        `${process.env.REACT_APP_API_BASE_URL}/api/fan-data/filter`,
+        `${apiBaseUrl}/api/fan-data/filter`,
         {
           method: "POST",
           headers: {
