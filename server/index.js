@@ -1,7 +1,13 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
+import cors from "cors";
+import dotenv from "dotenv";
 import fanDataRoutes from "./modules/FanData/fanData.route.js";
+import authRoutes from "./routes/auth.js";
+import adminRoutes from "./routes/admin.js";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,22 +15,23 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-// Simple CORS middleware to allow cross-origin requests and handle preflight
-app.use((req, res, next) => {
-	res.header("Access-Control-Allow-Origin", "*");
-	res.header(
-		"Access-Control-Allow-Headers",
-		"Origin, X-Requested-With, Content-Type, Accept, Authorization"
-	);
-	// Handle preflight
-	if (req.method === "OPTIONS") {
-		res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-		return res.sendStatus(204);
-	}
-	next();
-});
+// CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 
 // Register API routes
+app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/fan-data", fanDataRoutes);
 
 // Serve static files from the React app build directory

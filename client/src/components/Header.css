@@ -1,0 +1,26 @@
+.header {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+}
+
+.nav-item {
+  display: inline-block;
+}
+
+.nav-item:hover {
+  color: white !important;
+}
+
+@keyframes colorChange {
+  from {
+    color: #95A0CE;
+  }
+  to {
+    color: #FFFFFF;
+  }
+}
+
+.nav-item.active {
+  animation: colorChange 1s ease forwards;
+}
