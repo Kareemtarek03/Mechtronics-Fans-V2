@@ -1,9 +1,14 @@
 import fs from "fs";
+import xlsx from "xlsx";
 import path from "path";
 import { fileURLToPath } from "url";
+import { PrismaClient } from "@prisma/client";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Prisma client (local instance). This file uses it optionally when dataSource === 'db' or filePath === 'db'.
+const prisma = new PrismaClient();
 
 // Calculate density based on temperature
 function calcDensity(tempC) {
@@ -122,15 +127,53 @@ function recalcFanPerformance(fan, input) {
 }
 
 // Main Service Function
-export function processFanDataService(inputOptions) {
-  const { filePath, units, input } = inputOptions;
+export async function processFanDataService(inputOptions) {
+  const { filePath, units, input, dataSource } = inputOptions;
 
-  // Resolve file path relative to server directory
-  const resolvedPath = path.isAbsolute(filePath) 
-    ? filePath 
-    : path.join(__dirname, '..', '..', filePath);
-  const data = JSON.parse(fs.readFileSync(resolvedPath, "utf8"));
-  const convertedData = data.map((fan) => convertFanUnits(fan, units));
+  let rawData = [];
+
+  // If caller explicitly requests DB or passes filePath === 'db', fetch from DB
+  if (dataSource === "db" || filePath === "db") {
+    // read from Prisma FanData table and map DB rows to the expected nested shape
+    const rows = await prisma.fanData.findMany();
+    rawData = rows.map((r) => ({
+      // map flattened DB fields to the nested structure the rest of the service expects
+      Blades: {
+        symbol: r.bladesSymbol,
+        material: r.bladesMaterial,
+        noBlades: r.noBlades,
+        angle: r.bladesAngle,
+      },
+      Impeller: {
+        innerDia: r.impellerInnerDia,
+        conf: r.impellerConf,
+      },
+      desigDensity: r.desigDensity,
+      RPM: r.RPM,
+      // Prisma returns Json columns as parsed JS values
+      airFlow: r.airFlow,
+      totPressure: r.totPressure,
+      velPressure: r.velPressure,
+      staticPressure: r.staticPressure,
+      fanInputPow: r.fanInputPow,
+      // keep some direct fields for compatibility
+      bladesSymbol: r.bladesSymbol,
+      bladesMaterial: r.bladesMaterial,
+      noBlades: r.noBlades,
+      bladesAngle: r.bladesAngle,
+      impellerConf: r.impellerConf,
+      impellerInnerDia: r.impellerInnerDia,
+    }));
+  } else {
+    // Resolve file path relative to server directory
+    const resolvedPath =
+      filePath && path.isAbsolute(filePath)
+        ? filePath
+        : path.join(__dirname, "..", "..", filePath || "output.json");
+    rawData = JSON.parse(fs.readFileSync(resolvedPath, "utf8"));
+  }
+
+  const convertedData = rawData.map((fan) => convertFanUnits(fan, units));
   const recalculatedData = convertedData.map((fan) =>
     recalcFanPerformance(fan, input)
   );
@@ -247,10 +290,11 @@ function loadFansFromRecalculatedOutput(fans) {
 }
 
 // --- Evaluate ---
-export function main(InputData) {
+export async function main(InputData) {
   let result = [];
   const inputOptions = {
     filePath: InputData.filePath || "output.json",
+    dataSource: InputData.dataSource, // optional: set to 'db' to read from DB
     units: InputData.units,
     input: {
       RPM: InputData.RPM,
@@ -259,8 +303,9 @@ export function main(InputData) {
     },
   };
 
-  const { convertedData, recalculatedData } =
-    processFanDataService(inputOptions);
+  const { convertedData, recalculatedData } = await processFanDataService(
+    inputOptions
+  );
 
   // Load fans from recalculated data
   const { xPerFan, yPerFan, curveNames, PredNames } =
@@ -325,12 +370,13 @@ export function main(InputData) {
   };
 }
 
-export async function Output({ units, input }) {
+export async function Output({ units, input, dataSource }) {
   try {
     const filePath = "output.json";
     // main expects RPM/TempC/airFlow at top-level of its InputData argument
-    const result = main({
-      filePath,
+    const result = await main({
+      filePath: dataSource === "db" ? "db" : filePath,
+      dataSource,
       units,
       RPM: input?.RPM,
       TempC: input?.TempC,
@@ -393,13 +439,11 @@ export async function Output({ units, input }) {
       .map((fan) => {
         const blades = fan.Blades || {};
         const impeller = fan.Impeller || {};
-        const FanModel = `${units.fanType || ""}-${
-          impeller.innerDia || ""
-        }-${blades.noBlades || ""}\\${blades.angle || ""}\\${
-          blades.material || ""
-        }${blades.symbol || ""}-${noPoles}${
-          input.NoPhases == 3 ? "T" : "M"
-        }`;
+        const FanModel = `${units.fanType || ""}-${impeller.innerDia || ""}-${
+          blades.noBlades || ""
+        }\\${blades.angle || ""}\\${blades.material || ""}${
+          blades.symbol || ""
+        }-${noPoles}${input.NoPhases == 3 ? "T" : "M"}`;
 
         return { FanModel, ...fan };
       });
@@ -407,12 +451,23 @@ export async function Output({ units, input }) {
     // Load motor database and attach nearest motor by netpower to each fan
     let motors = [];
     try {
-      const motorDataPath = path.join(__dirname, '..', '..', 'MotorData.json');
-      const motorsRaw = fs.readFileSync(motorDataPath, "utf8");
-      motors = JSON.parse(motorsRaw);
+      // Prefer DB-backed motor data via Prisma; fallback to file if DB not available
+      const rows = await prisma.motorData.findMany();
+      motors = rows;
     } catch (err) {
-      // if file missing or parse error, continue without matching
-      motors = [];
+      try {
+        const motorDataPath = path.join(
+          __dirname,
+          "..",
+          "..",
+          "MotorData.json"
+        );
+        const motorsRaw = fs.readFileSync(motorDataPath, "utf8");
+        motors = JSON.parse(motorsRaw);
+      } catch (err2) {
+        // if file missing or parse error, continue without matching
+        motors = [];
+      }
     }
 
     const attachClosestMotor = (fan) => {
@@ -452,8 +507,7 @@ export async function Output({ units, input }) {
       // collect motors with net >= fan power
       const candidatesAbove = [];
       for (const m of motors) {
-        const netRaw =
-          m.netpower ?? m.netPower ?? m.powerKW ?? m.powerKw;
+        const netRaw = m.netpower ?? m.netPower ?? m.powerKW ?? m.powerKw;
         const net = Number(netRaw);
         if (!Number.isFinite(net)) continue;
         if (
@@ -505,5 +559,326 @@ export async function Output({ units, input }) {
   } catch (error) {
     console.error("❌ Fan data processing failed:", error);
     throw new Error(`Error`);
+  }
+}
+
+// --- Export / Import helpers for FanData (xlsx)
+export async function exportFanData(res) {
+  // try DB first, fallback to file
+  let data = [];
+  try {
+    const rows = await prisma.fanData.findMany();
+    data = rows.map((r) => ({
+      Blades: {
+        symbol: r.bladesSymbol,
+        material: r.bladesMaterial,
+        noBlades: r.noBlades,
+        angle: r.bladesAngle,
+      },
+      Impeller: { innerDia: r.impellerInnerDia, conf: r.impellerConf },
+      desigDensity: r.desigDensity,
+      RPM: r.RPM,
+      airFlow: r.airFlow,
+      totPressure: r.totPressure,
+      velPressure: r.velPressure,
+      staticPressure: r.staticPressure,
+      fanInputPow: r.fanInputPow,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    }));
+  } catch (e) {
+    try {
+      const raw = fs.readFileSync(
+        path.join(__dirname, "..", "..", "output.json"),
+        "utf8"
+      );
+      data = JSON.parse(raw || "[]");
+    } catch (e2) {
+      data = [];
+    }
+  }
+
+  const filename = "FanData-export.xlsx";
+  const ws = xlsx.utils.json_to_sheet(data);
+  const wb = xlsx.utils.book_new();
+  xlsx.utils.book_append_sheet(wb, ws, "FanData");
+  const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
+
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader(
+    "Content-Type",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  );
+  res.send(buffer);
+}
+
+export async function importFanDataFromExcel(
+  fileBase64,
+  filename = "uploaded.xlsx"
+) {
+  if (!fileBase64) throw new Error("No fileBase64 provided");
+  const buffer = Buffer.from(fileBase64, "base64");
+  const workbook = xlsx.read(buffer, { type: "buffer" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: null });
+  if (!rows || rows.length === 0) return [];
+
+  // small number parser (robust to commas/percent signs)
+  const parseNumber = (v) => {
+    if (v === null || v === undefined) return null;
+    if (typeof v === "number") return Number.isFinite(v) ? v : null;
+    let s = String(v).trim();
+    if (s === "") return null;
+    if (s.endsWith("%")) {
+      const n = Number(s.slice(0, -1).replace(/,/g, ""));
+      return Number.isNaN(n) ? null : n;
+    }
+    // remove any non-numeric except .,- and e
+    s = s.replace(/[^0-9+\-.,eE]/g, "");
+    if ((s.match(/,/g) || []).length > 0 && s.indexOf(".") !== -1)
+      s = s.replace(/,/g, "");
+    else if (s.indexOf(".") === -1 && s.indexOf(",") !== -1) {
+      if ((s.match(/,/g) || []).length > 1) s = s.replace(/,/g, "");
+      else s = s.replace(",", ".");
+    }
+    const n = Number(s);
+    return Number.isNaN(n) ? null : n;
+  };
+
+  // Map a positional row -> FanData payload. offset=1 means first column is ID and fields shift right.
+  const fanRowToPayload = (row, offset = 0) => {
+    const idx = (i) => i + offset;
+    const get = (i) => row[idx(i)] ?? null;
+
+    // expect 10-point curves for AirFlow & others; safe-read with fallback
+    const readArray = (startIndex, length = 10) => {
+      const out = [];
+      for (let i = 0; i < length; i++) {
+        out.push(parseNumber(row[idx(startIndex + i)]));
+      }
+      return out;
+    };
+
+    const payload = {
+      bladesSymbol: String(get(0) ?? "") || "",
+      bladesMaterial: String(get(1) ?? "") || "",
+      noBlades: parseNumber(get(2)),
+      bladesAngle: parseNumber(get(3)),
+      hubType: parseNumber(get(4)),
+      impellerConf: String(get(5) ?? "") || "",
+      impellerInnerDia: parseNumber(get(6)),
+      desigDensity: parseNumber(get(7)),
+      RPM: parseNumber(get(8)),
+      airFlow: readArray(9, 10),
+      totPressure: readArray(19, 10),
+      velPressure: readArray(29, 10),
+      staticPressure: readArray(39, 10),
+      fanInputPow: readArray(49, 10),
+    };
+
+    // if first column looks like numeric id include it
+    const possibleId = parseNumber(row[0]);
+    if (Number.isFinite(possibleId)) payload.id = possibleId;
+
+    return payload;
+  };
+
+  // Known field names for header detection
+  const knownFields = new Set([
+    "id",
+    "bladessymbol",
+    "bladesmaterial",
+    "noblades",
+    "bladesangle",
+    "hubtype",
+    "impellerconf",
+    "impellerinnerdia",
+    "desigdensity",
+    "rpm",
+    "airflow",
+    "totpressure",
+    "velpressure",
+    "staticpressure",
+    "faninputpow",
+  ]);
+
+  // const firstRow = rows[0];
+  // const firstRowHasHeaders = firstRow.some((cell) =>
+  //   knownFields.has(
+  //     String(cell || "")
+  //       .toLowerCase()
+  //       .replace(/\s+/g, "")
+  //   )
+  // );
+
+  const records = [];
+  // if (firstRowHasHeaders) {
+  //   // parse with header mapping
+  //   const objs = xlsx.utils.sheet_to_json(sheet, { defval: null });
+  //   for (const o of objs) {
+  //     // normalize keys and attempt to parse arrays if present as CSV strings
+  //     const rec = {};
+  //     for (const k of Object.keys(o)) {
+  //       const nk = String(k).trim();
+  //       const key = nk.replace(/\s+/g, "").toLowerCase();
+  //       const val = o[k];
+  //       if (
+  //         [
+  //           "airflow",
+  //           "totpressure",
+  //           "velpressure",
+  //           "staticpressure",
+  //           "faninputpow",
+  //         ].includes(key)
+  //       ) {
+  //         if (Array.isArray(val)) rec[key] = val.map((v) => parseNumber(v));
+  //         else if (typeof val === "string") {
+  //           const parts = val.split(/[,;\|]/).map((s) => parseNumber(s));
+  //           rec[key] = parts;
+  //         } else rec[key] = val;
+  //       } else if (
+  //         [
+  //           "noblades",
+  //           "hubtype",
+  //           "rpm",
+  //           "bladesangle",
+  //           "desigdensity",
+  //         ].includes(key)
+  //       ) {
+  //         rec[key] = parseNumber(val);
+  //       } else {
+  //         rec[key] = val;
+  //       }
+  //     }
+  //     records.push(rec);
+  //   }
+  // } else {
+  // No headers — treat each row (skip header-like empty first row?)
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row || row.length === 0) continue;
+    const payload = fanRowToPayload(row, 0);
+    records.push(payload);
+  }
+  // }
+
+  // Merge into DB (preferred) or fallback to file
+  try {
+    for (const rec of records) {
+      const idCandidate = rec.id || rec.Id || rec.ID || null;
+      const id = Number.isFinite(Number(idCandidate))
+        ? Number(idCandidate)
+        : null;
+
+      // build data payload mapping to DB columns
+      const allowed = [
+        "bladesSymbol",
+        "bladesMaterial",
+        "noBlades",
+        "bladesAngle",
+        "hubType",
+        "impellerConf",
+        "impellerInnerDia",
+        "desigDensity",
+        "RPM",
+        "airFlow",
+        "totPressure",
+        "velPressure",
+        "staticPressure",
+        "fanInputPow",
+      ];
+
+      const normalizeVal = (v) => {
+        if (typeof v === "string") {
+          const s = v.trim();
+          if (
+            (s.startsWith("[") && s.endsWith("]")) ||
+            (s.startsWith("{") && s.endsWith("}"))
+          ) {
+            try {
+              return JSON.parse(s);
+            } catch (e) {
+              return v;
+            }
+          }
+          // comma-separated numbers
+          if (s.indexOf(",") !== -1) {
+            const parts = s.split(/[,;\|]/).map((p) => parseNumber(p));
+            return parts;
+          }
+        }
+        return v;
+      };
+
+      const dataPayload = {};
+      for (const key of allowed) {
+        // support different casings
+        const candidates = [key, key.toLowerCase(), key.toUpperCase()];
+        let val = undefined;
+        for (const c of candidates) {
+          if (rec[c] !== undefined) {
+            val = rec[c];
+            break;
+          }
+        }
+        if (val === undefined) {
+          // also try direct property names from fanRowToPayload (camelCase)
+          if (rec[key] !== undefined) val = rec[key];
+          else if (rec[key.toLowerCase()] !== undefined)
+            val = rec[key.toLowerCase()];
+        }
+        if (val !== undefined && val !== null && val !== "") {
+          dataPayload[key] = normalizeVal(val);
+        }
+      }
+
+      if (id) {
+        const existing = await prisma.fanData.findUnique({ where: { id } });
+        if (!existing) {
+          console.warn(`No existing fan with id=${id}, creating new instead.`);
+          await prisma.fanData.create({ data: dataPayload });
+          continue;
+        }
+        await prisma.fanData.update({ where: { id }, data: dataPayload });
+        continue;
+      }
+
+      // No id: try to match by impellerInnerDia + noBlades + bladesSymbol if present
+      let matched = null;
+      if (
+        dataPayload.impellerInnerDia ||
+        dataPayload.noBlades ||
+        dataPayload.bladesSymbol
+      ) {
+        const where = {};
+        // try a simple match by bladesSymbol if present
+        if (dataPayload.bladesSymbol)
+          where.bladesSymbol = String(dataPayload.bladesSymbol);
+        const existing = await prisma.fanData.findFirst({ where });
+        if (existing) matched = existing;
+      }
+
+      if (matched) {
+        await prisma.fanData.update({
+          where: { id: matched.id },
+          data: dataPayload,
+        });
+      } else {
+        await prisma.fanData.create({ data: dataPayload });
+      }
+    }
+
+    return await prisma.fanData.findMany();
+  } catch (err) {
+    // fallback to file write
+    try {
+      const filePath = path.join(__dirname, "..", "..", "output.json");
+      const existing = JSON.parse(fs.readFileSync(filePath, "utf8") || "[]");
+      const merged = existing.concat(records);
+      fs.writeFileSync(filePath, JSON.stringify(merged, null, 2), "utf8");
+      return merged;
+    } catch (e) {
+      throw new Error("Failed to import fan data: " + e.message);
+    }
   }
 }

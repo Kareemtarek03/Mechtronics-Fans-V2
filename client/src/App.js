@@ -1,10 +1,17 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { FormProvider } from "./context/FormContext";
 import Header from "./components/Header";
 import HomePage from "./pages/HomePage";
 import ResultsPage from "./pages/ResultsPage";
 import GraphDetailPage from "./pages/GraphDetailPage";
+import FanData from "./pages/FanData";
+import MotorData from "./pages/Motor";
 import { Login } from "./components/auth/Login";
 import { Signup } from "./components/auth/Signup";
 import { ForgotPassword3Step } from "./components/auth/ForgotPassword3Step";
@@ -21,20 +28,20 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword3Step />} />
-          
+
           {/* Protected Admin Route */}
-          <Route 
-            path="/admin/dashboard" 
+          <Route
+            path="/admin/dashboard"
             element={
               <ProtectedRoute requireAdmin={true}>
                 <AdminDashboard />
               </ProtectedRoute>
-            } 
+            }
           />
-          
+
           {/* Protected Fan Selection Routes */}
-          <Route 
-            path="/fan-selection" 
+          <Route
+            path="/fan-selection"
             element={
               <ProtectedRoute>
                 <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
@@ -42,10 +49,10 @@ function App() {
                   <HomePage />
                 </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/results" 
+          <Route
+            path="/results"
             element={
               <ProtectedRoute>
                 <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
@@ -53,10 +60,10 @@ function App() {
                   <ResultsPage />
                 </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/graph-detail" 
+          <Route
+            path="/graph-detail"
             element={
               <ProtectedRoute>
                 <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
@@ -64,29 +71,42 @@ function App() {
                   <GraphDetailPage />
                 </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/fans" 
+          <Route
+            path="/fans"
             element={
               <ProtectedRoute>
                 <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
                   <Header />
-                  <div style={{ padding: "40px", textAlign: "center" }}>Fans page coming soon...</div>
+                  <FanData />
                 </div>
               </ProtectedRoute>
-            } 
+            }
           />
-          <Route 
-            path="/datasheets" 
+          <Route
+            path="/motors"
             element={
               <ProtectedRoute>
                 <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
                   <Header />
-                  <div style={{ padding: "40px", textAlign: "center" }}>Datasheets page coming soon...</div>
+                  <MotorData />
                 </div>
               </ProtectedRoute>
-            } 
+            }
+          />
+          <Route
+            path="/datasheets"
+            element={
+              <ProtectedRoute>
+                <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
+                  <Header />
+                  <div style={{ padding: "40px", textAlign: "center" }}>
+                    Datasheets page coming soon...
+                  </div>
+                </div>
+              </ProtectedRoute>
+            }
           />
         </Routes>
       </Router>

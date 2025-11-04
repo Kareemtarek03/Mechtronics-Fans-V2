@@ -54,3 +54,58 @@ model PasswordReset {
 
   @@map("password_resets")
 }
+model FanData {
+  id               Int       @id @default(autoincrement())
+  bladesSymbol     String
+  bladesMaterial   String
+  noBlades         Int
+  bladesAngle      Float
+  hubType          Int
+  impellerConf     String
+  impellerInnerDia Float
+  desigDensity     Float
+  RPM              Float
+  airFlow          Json
+  totPressure      Json
+  velPressure      Json
+  staticPressure   Json
+  fanInputPow      Json
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("fan_data")
+}
+
+model MotorData {
+  id             Int       @id @default(autoincrement())
+  material       String?   // can be null
+  model          String?   // can be null
+  powerKW        Float?    // can be null
+  speedRPM       Float?    // can be null
+  NoPoles        Int?      // can be null
+  rated          Json?     // can be null
+  DOL            Json?     // can be null
+  starDelta      Json?     // can be null
+  powerFactor    Float?    // can be null
+  Phase          Int?      // can be null
+  frameSize      Int?      // can be null
+  shaftDia       Float?    // can be null
+  shaftLength    Float?    // can be null
+  shaftFeather   Float?    // can be null
+  IE             Int?      // can be null
+  frontBear      String?   // can be null
+  rearBear       String?   // can be null
+  noiseLvl       Int?      // can be null
+  weightKg       Float?    // can be null
+  effCurve       Json?     // can be null
+  NoCapacitors   Int?      // can be null
+  NoPhases       Int?      // can be null
+  insClass       String?   // can be null
+  powerHorse     Float?    // can be null
+  netpower       Float?    // can be null
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("motor_data")
+}
+
