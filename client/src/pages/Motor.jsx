@@ -284,10 +284,10 @@ export default function MotorPage() {
               {uploading ? "Uploading..." : "Upload Motor Data"}
             </Button>
 
-            <Input
+            <input
               ref={fileInputRef}
               type="file"
-              display="none"
+              style={{ display: "none" }}
               accept=".xlsx,.xls,.csv"
               onChange={async (e) => {
                 const f = e.target.files && e.target.files[0];
@@ -399,19 +399,24 @@ export default function MotorPage() {
       </Stack>
 
       {error && (
-        <Alert status="error" mb={4}>
-          {/* <AlertIcon /> */}
-          {error}
-        </Alert>
+        <Alert.Root status="error" mb={4}>
+          <Alert.Indicator />
+          <Alert.Title>Error</Alert.Title>
+          <Alert.Description>{error}</Alert.Description>
+        </Alert.Root>
       )}
 
       {uploadMessage && (
-        <Alert
+        <Alert.Root
           status={/successful/i.test(uploadMessage) ? "success" : "error"}
           mb={4}
         >
-          {uploadMessage}
-        </Alert>
+          <Alert.Indicator />
+          <Alert.Title>
+            {/successful/i.test(uploadMessage) ? "Success" : "Error"}
+          </Alert.Title>
+          <Alert.Description>{uploadMessage}</Alert.Description>
+        </Alert.Root>
       )}
 
       {!loading && motors.length === 0 && !error && (

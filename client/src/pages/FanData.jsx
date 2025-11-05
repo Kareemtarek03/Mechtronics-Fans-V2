@@ -8,6 +8,7 @@ import {
   Spinner,
   Alert,
   Table,
+  Stack,
 } from "@chakra-ui/react";
 
 export default function FanDataPage() {
@@ -140,215 +141,176 @@ export default function FanDataPage() {
         Fan Data (combined)
       </Heading>
 
-      <Box mb={4} display="flex" gap={2} alignItems="center">
-        <Button
-          size="sm"
-          bg="#3b82f6"
-          _hover={{
-            bg: "#2563eb",
-            boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
-          }}
-          onClick={fetchData}
-          isDisabled={loading}
-        >
-          Refresh
-        </Button>
-        {loading && <Spinner size="sm" />}
-      </Box>
+      <Stack direction={"row"} justifyContent={"space-between"}>
+        <Box mb={4} display="flex" gap={2} alignItems="center">
+          <Button
+            size="sm"
+            bg="#3b82f6"
+            _hover={{
+              bg: "#2563eb",
+              boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
+            }}
+            onClick={fetchData}
+            isDisabled={loading}
+          >
+            Refresh
+          </Button>
+          {loading && <Spinner size="sm" />}
+        </Box>
 
-      <Box mb={4} display="flex" gap={2} alignItems="center">
-        <Button
-          size="sm"
-          bg="#3b82f6"
-          _hover={{
-            bg: "#2563eb",
-            boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
-          }}
-          onClick={() => document.getElementById("fandata-file-input")?.click()}
-          isDisabled={uploading}
-        >
-          {uploading ? "Importing..." : "Import Fan Data"}
-        </Button>
-        <Input
-          id="fandata-file-input"
-          type="file"
-          display="none"
-          accept=".xlsx,.xls,.csv"
-          onChange={async (e) => {
-            const f = e.target.files && e.target.files[0];
-            e.target.value = "";
-            if (!f) return;
-            try {
-              setUploading(true);
-              setImportMessage(null);
-              const dataUrl = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = reject;
-                reader.readAsDataURL(f);
-              });
-              const base64 = String(dataUrl).split(",")[1] || "";
-              const resp = await fetch(
-                `${process.env.REACT_APP_API_BASE_URL}/api/fan-data/upload`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    fileBase64: base64,
-                    filename: f.name,
-                  }),
-                }
-              );
-              const json = await resp.json().catch(() => ({}));
-              if (!resp.ok)
-                throw new Error(
-                  json?.error ||
-                    json?.details ||
-                    resp.statusText ||
-                    "Import failed"
-                );
-              setImportMessage("Import successful");
-              await fetchData();
-            } catch (err) {
-              console.error(err);
-              setImportMessage(err.message || "Import failed");
-            } finally {
-              setUploading(false);
+        <Box mb={4} display="flex" gap={2} alignItems="center">
+          <Button
+            size="sm"
+            bg="#3b82f6"
+            _hover={{
+              bg: "#2563eb",
+              boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
+            }}
+            onClick={() =>
+              document.getElementById("fandata-file-input")?.click()
             }
-          }}
-        />
-        <Button
-          size="sm"
-          bg="#10b981"
-          _hover={{ bg: "#059669" }}
-          onClick={() => document.getElementById("fandata-file-input-binary")?.click()}
-          isDisabled={uploading}
-        >
-          Import (binary)
-        </Button>
-        <Input
-          id="fandata-file-input-binary"
-          type="file"
-          display="none"
-          accept=".xlsx,.xls,.csv"
-          onChange={async (e) => {
-            const f = e.target.files && e.target.files[0];
-            e.target.value = "";
-            if (!f) return;
-            try {
-              setUploading(true);
-              setImportMessage(null);
-              const arrayBuffer = await f.arrayBuffer();
-              const resp = await fetch(
-                `${process.env.REACT_APP_API_BASE_URL}/api/fan-data/upload-file?filename=${encodeURIComponent(
-                  f.name
-                )}`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/octet-stream",
-                    "x-filename": f.name,
-                  },
-                  body: arrayBuffer,
-                }
-              );
-              const json = await resp.json().catch(() => ({}));
-              if (!resp.ok)
-                throw new Error(
-                  json?.error || json?.details || resp.statusText || "Import failed"
+            isDisabled={uploading}
+          >
+            {uploading ? "Importing..." : "Import Fan Data"}
+          </Button>
+          <Input
+            id="fandata-file-input"
+            type="file"
+            display="none"
+            accept=".xlsx,.xls,.csv"
+            onChange={async (e) => {
+              const f = e.target.files && e.target.files[0];
+              e.target.value = "";
+              if (!f) return;
+              try {
+                setUploading(true);
+                setImportMessage(null);
+                const dataUrl = await new Promise((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result);
+                  reader.onerror = reject;
+                  reader.readAsDataURL(f);
+                });
+                const base64 = String(dataUrl).split(",")[1] || "";
+                const resp = await fetch(
+                  `${process.env.REACT_APP_API_BASE_URL}/api/fan-data/upload`,
+                  {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      fileBase64: base64,
+                      filename: f.name,
+                    }),
+                  }
                 );
-              setImportMessage("Import successful (binary)");
-              await fetchData();
-            } catch (err) {
-              console.error(err);
-              setImportMessage(err.message || "Import failed");
-            } finally {
-              setUploading(false);
-            }
-          }}
-        />
-
-        <Button
-          size="sm"
-          bg="#3b82f6"
-          isLoading={downloading}
-          _hover={{
-            bg: "#2563eb",
-            boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
-          }}
-          onClick={async () => {
-            try {
-              setDownloading(true);
-              setExportMessage(null);
-              const resp = await fetch(
-                `${process.env.REACT_APP_API_BASE_URL}/api/fan-data/export`
-              );
-              if (!resp.ok) {
-                const txt = await resp.text().catch(() => null);
-                throw new Error(txt || resp.statusText || "Export failed");
-              }
-              const cd = resp.headers.get("content-disposition");
-              let filename = "FanData-export.xlsx";
-
-              if (cd) {
-                const m = cd.match(
-                  /filename\*=UTF-8''(.+)$|filename="?([^";]+)"?/i
-                );
-                if (m) {
-                  filename = decodeURIComponent(
-                    (m[1] || m[2] || filename).trim()
+                const json = await resp.json().catch(() => ({}));
+                if (!resp.ok)
+                  throw new Error(
+                    json?.error ||
+                      json?.details ||
+                      resp.statusText ||
+                      "Import failed"
                   );
+                setImportMessage("Import successful");
+                await fetchData();
+              } catch (err) {
+                console.error(err);
+                setImportMessage(err.message || "Import failed");
+              } finally {
+                setUploading(false);
+              }
+            }}
+          />
+
+          <Button
+            size="sm"
+            bg="#3b82f6"
+            isLoading={downloading}
+            _hover={{
+              bg: "#2563eb",
+              boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
+            }}
+            onClick={async () => {
+              try {
+                setDownloading(true);
+                setExportMessage(null);
+                const resp = await fetch(
+                  `${process.env.REACT_APP_API_BASE_URL}/api/fan-data/export`
+                );
+                if (!resp.ok) {
+                  const txt = await resp.text().catch(() => null);
+                  throw new Error(txt || resp.statusText || "Export failed");
                 }
-              }
+                const cd = resp.headers.get("content-disposition");
+                let filename = "FanData-export.xlsx";
 
-              const blob = await resp.blob();
-              if (blob.type.includes("json")) {
-                const err = await blob.text();
-                throw new Error(err);
-              }
+                if (cd) {
+                  const m = cd.match(
+                    /filename\*=UTF-8''(.+)$|filename="?([^";]+)"?/i
+                  );
+                  if (m) {
+                    filename = decodeURIComponent(
+                      (m[1] || m[2] || filename).trim()
+                    );
+                  }
+                }
 
-              const url = window.URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = filename;
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              window.URL.revokeObjectURL(url);
-              setExportMessage("Export downloaded");
-            } catch (err) {
-              console.error(err);
-              setExportMessage(err.message || "Export failed");
-            } finally {
-              setDownloading(false);
-            }
-          }}
-        >
-          Export Fan Data
-        </Button>
-      </Box>
+                const blob = await resp.blob();
+                if (blob.type.includes("json")) {
+                  const err = await blob.text();
+                  throw new Error(err);
+                }
+
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                setExportMessage("Export downloaded");
+              } catch (err) {
+                console.error(err);
+                setExportMessage(err.message || "Export failed");
+              } finally {
+                setDownloading(false);
+              }
+            }}
+          >
+            Export Fan Data
+          </Button>
+        </Box>
+      </Stack>
 
       {importMessage && (
-        <Alert
+        <Alert.Root
           status={/successful/i.test(importMessage) ? "success" : "error"}
           mb={4}
         >
-          {importMessage}
-        </Alert>
+          <Alert.Title>
+            {/successful/i.test(importMessage) ? "Success" : "Error"}
+          </Alert.Title>
+          <Alert.Description>{importMessage}</Alert.Description>
+        </Alert.Root>
       )}
       {exportMessage && (
-        <Alert
+        <Alert.Root
           status={/downloaded/i.test(exportMessage) ? "success" : "error"}
           mb={4}
         >
-          {exportMessage}
-        </Alert>
+          <Alert.Title>
+            {/downloaded/i.test(exportMessage) ? "Success" : "Error"}
+          </Alert.Title>
+          <Alert.Description>{exportMessage}</Alert.Description>
+        </Alert.Root>
       )}
 
       {error && (
-        <Alert status="error" mb={4}>
-          {error}
-        </Alert>
+        <Alert.Root status="error" mb={4}>
+          <Alert.Title>Error</Alert.Title>
+          <Alert.Description>{error}</Alert.Description>
+        </Alert.Root>
       )}
 
       {!loading && fans.length === 0 && !error && (

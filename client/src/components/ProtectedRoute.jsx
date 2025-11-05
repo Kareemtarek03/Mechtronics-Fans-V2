@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 
-export const ProtectedRoute = ({ children, requireAdmin = false }) => {
+export const ProtectedRoute = ({ children, requireSuperAdmin = false, requireAdmin = false }) => {
   const token = localStorage.getItem('token');
   const userRole = localStorage.getItem('userRole');
 
@@ -14,7 +14,7 @@ export const ProtectedRoute = ({ children, requireAdmin = false }) => {
   }
 
   // If admin route is required but user is not admin, redirect to fan selection
-  if (requireAdmin && userRole !== 'super_admin') {
+  if (requireSuperAdmin && userRole !== 'super_admin') {
     console.log('❌ Admin route required but user role is:', userRole);
     return <Navigate to="/fan-selection" replace />;
   }

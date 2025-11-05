@@ -33,7 +33,7 @@ function App() {
           <Route
             path="/admin/dashboard"
             element={
-              <ProtectedRoute requireAdmin={true}>
+              <ProtectedRoute requireSuperAdmin={true}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
@@ -76,7 +76,7 @@ function App() {
           <Route
             path="/fans"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireAdmin={true}>
                 <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
                   <Header />
                   <FanData />
@@ -87,7 +87,7 @@ function App() {
           <Route
             path="/motors"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireAdmin={true}>
                 <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
                   <Header />
                   <MotorData />

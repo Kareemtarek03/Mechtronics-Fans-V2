@@ -13,7 +13,7 @@ export default function Header() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [userData, setUserData] = useState(null);
   const dropdownRef = useRef(null);
-
+  const userRole = localStorage.getItem("userRole");
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -71,12 +71,17 @@ export default function Header() {
     navigate("/login");
   };
 
-  const navItems = [
-    { name: "Home", path: "/fan-selection" },
-    { name: "Selection Result", path: "/results" },
-    { name: "Fan Data", path: "/fans" },
-    { name: "Motor Data", path: "/motors" },
-  ];
+  const navItems = userRole === "admin"
+    ? [
+        { name: "Home", path: "/fan-selection" },
+        { name: "Selection Result", path: "/results" },
+        { name: "Fan Data", path: "/fans" },
+        { name: "Motor Data", path: "/motors" },
+      ]
+    : [
+        { name: "Home", path: "/fan-selection" },
+        { name: "Selection Result", path: "/results" },
+      ];
 
   return (
     <header
