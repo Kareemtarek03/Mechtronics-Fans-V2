@@ -136,34 +136,37 @@ export async function processFanDataService(inputOptions) {
   if (dataSource === "db" || filePath === "db") {
     // read from Prisma FanData table and map DB rows to the expected nested shape
     const rows = await prisma.fanData.findMany();
-    rawData = rows.map((r) => ({
-      // map flattened DB fields to the nested structure the rest of the service expects
-      Blades: {
-        symbol: r.bladesSymbol,
-        material: r.bladesMaterial,
+    rawData = rows
+      .map((r) => ({
+        // map flattened DB fields to the nested structure the rest of the service expects
+        Id: r.id,
+        Blades: {
+          symbol: r.bladesSymbol,
+          material: r.bladesMaterial,
+          noBlades: r.noBlades,
+          angle: r.bladesAngle,
+        },
+        Impeller: {
+          innerDia: r.impellerInnerDia,
+          conf: r.impellerConf,
+        },
+        desigDensity: r.desigDensity,
+        RPM: r.RPM,
+        // Prisma returns Json columns as parsed JS values
+        airFlow: r.airFlow,
+        totPressure: r.totPressure,
+        velPressure: r.velPressure,
+        staticPressure: r.staticPressure,
+        fanInputPow: r.fanInputPow,
+        // keep some direct fields for compatibility
+        bladesSymbol: r.bladesSymbol,
+        bladesMaterial: r.bladesMaterial,
         noBlades: r.noBlades,
-        angle: r.bladesAngle,
-      },
-      Impeller: {
-        innerDia: r.impellerInnerDia,
-        conf: r.impellerConf,
-      },
-      desigDensity: r.desigDensity,
-      RPM: r.RPM,
-      // Prisma returns Json columns as parsed JS values
-      airFlow: r.airFlow,
-      totPressure: r.totPressure,
-      velPressure: r.velPressure,
-      staticPressure: r.staticPressure,
-      fanInputPow: r.fanInputPow,
-      // keep some direct fields for compatibility
-      bladesSymbol: r.bladesSymbol,
-      bladesMaterial: r.bladesMaterial,
-      noBlades: r.noBlades,
-      bladesAngle: r.bladesAngle,
-      impellerConf: r.impellerConf,
-      impellerInnerDia: r.impellerInnerDia,
-    }));
+        bladesAngle: r.bladesAngle,
+        impellerConf: r.impellerConf,
+        impellerInnerDia: r.impellerInnerDia,
+      }))
+      .sort((a, b) => a.Id - b.Id);
   } else {
     // Resolve file path relative to server directory
     const resolvedPath =
@@ -660,22 +663,23 @@ export async function importFanDataFromExcel(
     };
 
     const payload = {
-      bladesSymbol: String(get(0) ?? "") || "",
-      bladesMaterial: String(get(1) ?? "") || "",
-      noBlades: parseNumber(get(2)),
-      bladesAngle: parseNumber(get(3)),
+      id: parseNumber(get(-1)), // if offset=1, id is at -1
+      bladesSymbol: String(get(2) ?? "") || "",
+      bladesMaterial: String(get(3) ?? "") || "",
+      noBlades: parseNumber(get(5)),
+      bladesAngle: parseNumber(get(4)),
       hubType: parseNumber(get(4)),
-      impellerConf: String(get(5) ?? "") || "",
+      impellerConf: String(get(7) ?? "") || "",
       impellerInnerDia: parseNumber(get(6)),
-      desigDensity: parseNumber(get(7)),
-      RPM: parseNumber(get(8)),
-      airFlow: readArray(9, 10),
-      totPressure: readArray(19, 10),
-      velPressure: readArray(29, 10),
-      staticPressure: readArray(39, 10),
-      fanInputPow: readArray(49, 10),
+      desigDensity: parseNumber(get(0)),
+      RPM: parseNumber(get(1)),
+      airFlow: readArray(8, 10),
+      totPressure: readArray(18, 10),
+      velPressure: readArray(28, 10),
+      staticPressure: readArray(38, 10),
+      fanInputPow: readArray(48, 10),
     };
-
+    console.log("Parsed payload:", payload);
     // if first column looks like numeric id include it
     const possibleId = parseNumber(row[0]);
     if (Number.isFinite(possibleId)) payload.id = possibleId;
@@ -757,7 +761,7 @@ export async function importFanDataFromExcel(
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r];
     if (!row || row.length === 0) continue;
-    const payload = fanRowToPayload(row, 0);
+    const payload = fanRowToPayload(row, 1);
     records.push(payload);
   }
   // }
@@ -844,26 +848,7 @@ export async function importFanDataFromExcel(
       }
 
       // No id: try to match by impellerInnerDia + noBlades + bladesSymbol if present
-      let matched = null;
-      if (
-        dataPayload.impellerInnerDia ||
-        dataPayload.noBlades ||
-        dataPayload.bladesSymbol
-      ) {
-        const where = {};
-        // try a simple match by bladesSymbol if present
-        if (dataPayload.bladesSymbol)
-          where.bladesSymbol = String(dataPayload.bladesSymbol);
-        const existing = await prisma.fanData.findFirst({ where });
-        if (existing) matched = existing;
-      }
-
-      if (matched) {
-        await prisma.fanData.update({
-          where: { id: matched.id },
-          data: dataPayload,
-        });
-      } else {
+      else {
         await prisma.fanData.create({ data: dataPayload });
       }
     }

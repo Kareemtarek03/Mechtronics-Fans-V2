@@ -68,27 +68,30 @@ export async function getOutputFile(req, res) {
   try {
     // Read fan data directly from the database
     const rows = await prisma.fanData.findMany();
-    const data = rows.map((r) => ({
-      Blades: {
-        symbol: r.bladesSymbol,
-        material: r.bladesMaterial,
-        noBlades: r.noBlades,
-        angle: r.bladesAngle,
-      },
-      Impeller: {
-        innerDia: r.impellerInnerDia,
-        conf: r.impellerConf,
-      },
-      desigDensity: r.desigDensity,
-      RPM: r.RPM,
-      airFlow: r.airFlow,
-      totPressure: r.totPressure,
-      velPressure: r.velPressure,
-      staticPressure: r.staticPressure,
-      fanInputPow: r.fanInputPow,
-      createdAt: r.createdAt,
-      updatedAt: r.updatedAt,
-    }));
+    const data = rows
+      .map((r) => ({
+        Id: r.id,
+        Blades: {
+          symbol: r.bladesSymbol,
+          material: r.bladesMaterial,
+          noBlades: r.noBlades,
+          angle: r.bladesAngle,
+        },
+        Impeller: {
+          innerDia: r.impellerInnerDia,
+          conf: r.impellerConf,
+        },
+        desigDensity: r.desigDensity,
+        RPM: r.RPM,
+        airFlow: r.airFlow,
+        totPressure: r.totPressure,
+        velPressure: r.velPressure,
+        staticPressure: r.staticPressure,
+        fanInputPow: r.fanInputPow,
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      }))
+      .sort((a, b) => (a.Id || 0) - (b.Id || 0)); // sort by Id if available
 
     res.json({ message: "✅ Output data (from DB)", data });
   } catch (err) {
@@ -104,7 +107,9 @@ export async function exportFanDataController(req, res) {
     return await exportFanData(res);
   } catch (err) {
     console.error("Failed to export fan data", err);
-    res.status(500).json({ error: "Failed to export fan data", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to export fan data", details: err.message });
   }
 }
 
@@ -112,17 +117,23 @@ export async function uploadFanDataController(req, res) {
   try {
     const { fileBase64, filename } = req.body;
     const out = await importFanDataFromExcel(fileBase64, filename);
-    res.json({ message: "✅ Fan data imported", importedRows: Array.isArray(out) ? out.length : 0 });
+    res.json({
+      message: "✅ Fan data imported",
+      importedRows: Array.isArray(out) ? out.length : 0,
+    });
   } catch (err) {
     console.error("Failed to import fan data", err);
-    res.status(500).json({ error: "Failed to import fan data", details: err.message });
+    res
+      .status(500)
+      .json({ error: "Failed to import fan data", details: err.message });
   }
 }
 
 export async function uploadFanDataBinaryController(req, res) {
   try {
     // Expect raw bytes in req.body (Buffer) and optional filename in header 'x-filename'
-    const filename = req.headers["x-filename"] || req.query.filename || "uploaded.xlsx";
+    const filename =
+      req.headers["x-filename"] || req.query.filename || "uploaded.xlsx";
     let fileBuffer = null;
     if (req.body && Buffer.isBuffer(req.body)) {
       fileBuffer = req.body;
@@ -135,9 +146,67 @@ export async function uploadFanDataBinaryController(req, res) {
 
     const base64 = fileBuffer.toString("base64");
     const out = await importFanDataFromExcel(base64, filename);
-    res.json({ message: "✅ Fan data imported (binary)", importedRows: Array.isArray(out) ? out.length : 0 });
+    res.json({
+      message: "✅ Fan data imported (binary)",
+      importedRows: Array.isArray(out) ? out.length : 0,
+    });
   } catch (err) {
     console.error("Failed to import fan data (binary)", err);
-    res.status(500).json({ error: "Failed to import fan data (binary)", details: err.message });
+    res
+      .status(500)
+      .json({
+        error: "Failed to import fan data (binary)",
+        details: err.message,
+      });
+  }
+}
+
+export async function deleteFanDataController(req, res) {
+  try {
+    const idRaw = req.params.id;
+    const id = Number(idRaw);
+    if (!Number.isFinite(id)) {
+      return res.status(400).json({ error: "Invalid id" });
+    }
+
+    try {
+      // attempt to delete from DB
+      await prisma.fanData.delete({ where: { id } });
+      return res.json({ message: `Deleted fan data with id=${id}` });
+    } catch (dbErr) {
+      // If DB delete fails (not found or DB not available), try file fallback
+      console.warn(
+        "DB delete failed, attempting file fallback:",
+        dbErr?.message
+      );
+      try {
+        const filePath = new URL("../../output.json", import.meta.url);
+        const p = filePath.pathname;
+        let arr = JSON.parse(fs.readFileSync(p, "utf8") || "[]");
+        const before = arr.length;
+        arr = arr.filter((x) => Number(x.id) !== id && Number(x.Id) !== id);
+        const after = arr.length;
+        if (after === before) {
+          return res.status(404).json({ error: "Not found" });
+        }
+        fs.writeFileSync(p, JSON.stringify(arr, null, 2), "utf8");
+        return res.json({
+          message: `Deleted fan data with id=${id} (file fallback)`,
+        });
+      } catch (fileErr) {
+        console.error("Failed to delete fan data in fallback file:", fileErr);
+        return res
+          .status(500)
+          .json({
+            error: "Failed to delete fan data",
+            details: fileErr.message,
+          });
+      }
+    }
+  } catch (err) {
+    console.error("Error in deleteFanDataController:", err);
+    res
+      .status(500)
+      .json({ error: "Failed to delete fan data", details: err.message });
   }
 }

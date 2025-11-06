@@ -9,6 +9,9 @@ import {
   Alert,
   Table,
   Stack,
+  Dialog,
+  Portal,
+  CloseButton,
 } from "@chakra-ui/react";
 
 export default function FanDataPage() {
@@ -19,6 +22,9 @@ export default function FanDataPage() {
   const [importMessage, setImportMessage] = useState(null);
   const [downloading, setDownloading] = useState(false);
   const [exportMessage, setExportMessage] = useState(null);
+  const [deletingIds, setDeletingIds] = useState([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedFan, setSelectedFan] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -62,6 +68,51 @@ export default function FanDataPage() {
       return v.toLocaleString(undefined, { maximumFractionDigits: 6 });
     return String(v);
   };
+  const downloadFanTemplate = async () => {
+    // expects pre-made file at /templates/FanData-template.xlsx in the client public folder
+    try {
+      const urlPath = `${
+        process.env.PUBLIC_URL || ""
+      }/templates/Fan-Data-Template.xlsx`;
+      const resp = await fetch(urlPath);
+      if (!resp.ok) throw new Error(`Template not found: ${resp.status}`);
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Fan-Data-Template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      setImportMessage(err.message || "Failed to download template");
+    }
+  };
+
+  const handleDelete = async (fanId) => {
+    try {
+      setDeletingIds((s) => [...s, fanId]);
+      const resp = await fetch(
+        `${process.env.REACT_APP_API_BASE_URL}/api/fan-data/${fanId}`,
+        { method: "DELETE" }
+      );
+      if (!resp.ok) {
+        const j = await resp.json().catch(() => null);
+        throw new Error(j?.error || resp.statusText || "Delete failed");
+      }
+      // refresh list
+      await fetchData();
+      setOpenDialog(false);
+      setSelectedFan(null);
+    } catch (err) {
+      console.error(err);
+      setImportMessage(err.message || "Delete failed");
+    } finally {
+      setDeletingIds((s) => s.filter((x) => x !== fanId));
+    }
+  };
   // Build table: one row per fan. For each series list create columns named "title - index"
   const seriesKeysUnion = Array.from(
     new Set(
@@ -100,6 +151,10 @@ export default function FanDataPage() {
       FanModel: item.FanModel || "",
       Id: item.Id != null && item.Id !== "" ? item.Id : fanIdx + 1,
       RPM: item.RPM,
+      // Add other fields as necessary
+      Blades: item.Blades || {},
+      Impeller: item.Impeller || {},
+      desigDensity: item.desigDensity,
     };
 
     seriesKeysUnion.forEach((k) => {
@@ -159,6 +214,14 @@ export default function FanDataPage() {
         </Box>
 
         <Box mb={4} display="flex" gap={2} alignItems="center">
+          <Button
+            size="sm"
+            bg="#10b981"
+            _hover={{ bg: "#059669" }}
+            onClick={downloadFanTemplate}
+          >
+            Download Template
+          </Button>
           <Button
             size="sm"
             bg="#3b82f6"
@@ -333,12 +396,42 @@ export default function FanDataPage() {
             <Table.Root bg={"#1e293b"} w={"max-content"}>
               <Table.Header bg={"#1e293b"} color={"white"}>
                 <Table.Row bg={"#1e293b"} color={"white"}>
+                  <Table.ColumnHeader color={"white"}>
+                    Actions
+                  </Table.ColumnHeader>
                   <Table.ColumnHeader color={"white"}>Id</Table.ColumnHeader>
+                  <Table.ColumnHeader color={"white"}>
+                    Designated Density
+                  </Table.ColumnHeader>
                   <Table.ColumnHeader
                     borderRight={"1px solid #fff"}
                     color={"white"}
                   >
-                    RPM
+                    Speed (RPM)
+                  </Table.ColumnHeader>
+                  <Table.ColumnHeader color={"white"}>
+                    Blade Symbol
+                  </Table.ColumnHeader>
+                  <Table.ColumnHeader color={"white"}>
+                    Blade Material
+                  </Table.ColumnHeader>
+                  <Table.ColumnHeader color={"white"}>
+                    Blade Angle
+                  </Table.ColumnHeader>
+                  <Table.ColumnHeader
+                    borderRight={"1px solid #fff"}
+                    color={"white"}
+                  >
+                    Number of Blades
+                  </Table.ColumnHeader>
+                  <Table.ColumnHeader color={"white"}>
+                    Impeller Inner Diameter
+                  </Table.ColumnHeader>
+                  <Table.ColumnHeader
+                    borderRight={"1px solid #fff"}
+                    color={"white"}
+                  >
+                    Impeller Configuration
                   </Table.ColumnHeader>
                   {seriesColumns.map((col) => {
                     const end = col.endsWith("10");
@@ -377,7 +470,30 @@ export default function FanDataPage() {
                       key={`${r.Id}-${idx}`}
                     >
                       <Table.Cell borderColor="#334155">
+                        {(() => {
+                          const fanId = r.Id ?? null;
+                          if (!fanId) return "-";
+                          const isDeleting = deletingIds.includes(fanId);
+                          return (
+                            <Button
+                              size="xs"
+                              colorScheme="red"
+                              isLoading={isDeleting}
+                              onClick={() => {
+                                setSelectedFan({ id: fanId, row: r });
+                                setOpenDialog(true);
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          );
+                        })()}
+                      </Table.Cell>
+                      <Table.Cell borderColor="#334155">
                         {formatValue(r.Id)}
+                      </Table.Cell>
+                      <Table.Cell borderBottomColor="#334155">
+                        {formatValue(r.desigDensity)}
                       </Table.Cell>
                       <Table.Cell
                         borderRight={"1px solid #fff"}
@@ -385,6 +501,31 @@ export default function FanDataPage() {
                       >
                         {formatValue(r.RPM)}
                       </Table.Cell>
+                      <Table.Cell borderColor="#334155">
+                        {formatValue(r.Blades.symbol)}
+                      </Table.Cell>
+                      <Table.Cell borderColor="#334155">
+                        {formatValue(r.Blades.material)}
+                      </Table.Cell>
+                      <Table.Cell borderColor="#334155">
+                        {formatValue(r.Blades.angle)}
+                      </Table.Cell>
+                      <Table.Cell
+                        borderRight={"1px solid #fff"}
+                        borderBottomColor="#334155"
+                      >
+                        {formatValue(r.Blades.noBlades)}
+                      </Table.Cell>
+                      <Table.Cell borderColor="#334155">
+                        {formatValue(r.Impeller.innerDia)}
+                      </Table.Cell>
+                      <Table.Cell
+                        borderRight={"1px solid #fff"}
+                        borderBottomColor="#334155"
+                      >
+                        {formatValue(r.Impeller.conf)}
+                      </Table.Cell>
+
                       {seriesColumns.map((col) => {
                         const end = col.endsWith("10");
                         return (
@@ -427,6 +568,57 @@ export default function FanDataPage() {
           </Box>
         </>
       )}
+      <Dialog.Root open={openDialog}>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content bg="#1e293b" color="white">
+              <Dialog.Header>
+                <Dialog.Title>Delete Fan Data</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                {selectedFan ? (
+                  <Text>
+                    Are you sure you want to delete fan ID{" "}
+                    <strong>{selectedFan.id}</strong>? This cannot be undone.
+                  </Text>
+                ) : (
+                  <Text>No fan selected.</Text>
+                )}
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger asChild>
+                  <Button
+                    variant="solid"
+                    color="black"
+                    bg="#ffe"
+                    onClick={() => setOpenDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                </Dialog.ActionTrigger>
+                <Button
+                  colorScheme="red"
+                  onClick={() => handleDelete(selectedFan?.id)}
+                  isLoading={
+                    selectedFan && deletingIds.includes(selectedFan.id)
+                  }
+                >
+                  Delete
+                </Button>
+              </Dialog.Footer>
+              <Dialog.CloseTrigger asChild>
+                <CloseButton
+                  size="sm"
+                  color="white"
+                  _hover={{ bg: "gray" }}
+                  onClick={() => setOpenDialog(false)}
+                />
+              </Dialog.CloseTrigger>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </Box>
   );
 }

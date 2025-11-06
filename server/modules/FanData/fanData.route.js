@@ -7,6 +7,7 @@ import {
   exportFanDataController,
   uploadFanDataController,
   uploadFanDataBinaryController,
+  deleteFanDataController,
 } from "./fanData.controller.js";
 
 const router = express.Router();
@@ -27,5 +28,8 @@ router.post(
   express.raw({ type: "application/octet-stream", limit: "50mb" }),
   uploadFanDataBinaryController
 );
+
+// DELETE /api/fan-data/:id
+router.delete("/:id", deleteFanDataController);
 
 export default router;
