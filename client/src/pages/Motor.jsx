@@ -245,6 +245,29 @@ export default function MotorPage() {
     return out;
   }, [motors]);
 
+  const downloadMotorTemplate = async () => {
+    // expects pre-made file at /templates/MotorData-template.xlsx in the client public folder
+    try {
+      const urlPath = `${
+        process.env.PUBLIC_URL || ""
+      }/templates/Motor-Data-Template.xlsx`;
+      const resp = await fetch(urlPath);
+      if (!resp.ok) throw new Error(`Template not found: ${resp.status}`);
+      const blob = await resp.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Motor-Data-Template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      setExportMessage(err.message || "Failed to download template");
+    }
+  };
+
   return (
     <Box p={4} bg={"#0f172a"} color={"white"} mt={20} pt={12}>
       <Heading mb={4} fontSize={"4xl"} textAlign={"center"}>
@@ -393,6 +416,14 @@ export default function MotorPage() {
               }}
             >
               Export Motor Data
+            </Button>
+            <Button
+              size="sm"
+              bg="#10b981"
+              _hover={{ bg: "#059669" }}
+              onClick={downloadMotorTemplate}
+            >
+              Download Template
             </Button>
           </Box>
         </Box>
