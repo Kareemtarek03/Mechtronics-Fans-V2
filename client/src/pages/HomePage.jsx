@@ -110,6 +110,8 @@ export default function HomePage() {
       NoPhases: DEFAULTS.input.NoPhases,
       SPF: DEFAULTS.input.SPF,
       Safety: DEFAULTS.input.Safety,
+      directivityFactor: 2,
+      distanceFromSource: 1,
     });
     setUnits({
       airFlow: DEFAULTS.units.airFlow,
@@ -248,7 +250,7 @@ export default function HomePage() {
                         </Text>
                         {!input.TempC &&
                           getDefaultForField("input", "TempC") !==
-                            undefined && (
+                          undefined && (
                             <Text fontSize="xs" color="#94a3b8" mb={1}>
                               Default: {getDefaultForField("input", "TempC")}
                             </Text>
@@ -684,6 +686,129 @@ export default function HomePage() {
                     </Box>
                   </Box>
 
+                  {/* Section 6: Sound Data */}
+                  <Box w="100%" mt={4}>
+                    <Heading
+                      size="sm"
+                      color="#ffffff"
+                      mb={3}
+                      pb={2}
+                      borderBottom="2px"
+                      borderColor="#3b82f6"
+                      fontWeight="600"
+                      fontSize={{ base: "md", md: "lg" }}
+                      display="flex"
+                      alignItems="center"
+                      gap={2}
+                    >
+                      <Box as="span" color="#3b82f6">
+                        🔊
+                      </Box>
+                      Sound Data
+                    </Heading>
+                    <Box
+                      bg="#0f172a"
+                      borderRadius="lg"
+                      p={{ base: 3, md: 3 }}
+                      border="1px"
+                      borderColor="#334155"
+                      w="100%"
+                      mt={2}
+                    >
+                      <Grid
+                        templateColumns={{ base: "1fr", md: "1fr 1fr" }}
+                        gap={{ base: 3, md: 3 }}
+                        w="100%"
+                      >
+                        <Box>
+                          <Text
+                            fontSize="sm"
+                            mb={2}
+                            color="#e2e8f0"
+                            fontWeight="medium"
+                          >
+                            Directivity Factor (Q)
+                          </Text>
+                          <Text fontSize="xs" color="#94a3b8" mb={1}>
+                            Default: 2
+                          </Text>
+                          <select
+                            name="directivityFactor"
+                            value={input.directivityFactor || 2}
+                            onChange={(e) =>
+                              setInput((prev) => ({
+                                ...prev,
+                                directivityFactor: parseFloat(e.target.value),
+                              }))
+                            }
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              backgroundColor: "#1e293b",
+                              color: "#e2e8f0",
+                              border: "1px solid #334155",
+                              borderRadius: "6px",
+                              fontSize: "14px",
+                              cursor: "pointer",
+                              outline: "none",
+                            }}
+                          >
+                            <option value={1} style={{ background: "#1e293b" }}>1</option>
+                            <option value={2} style={{ background: "#1e293b" }}>2</option>
+                            <option value={4} style={{ background: "#1e293b" }}>4</option>
+                            <option value={8} style={{ background: "#1e293b" }}>8</option>
+                          </select>
+                        </Box>
+                        <Box>
+                          <Text
+                            fontSize="sm"
+                            mb={2}
+                            color="#e2e8f0"
+                            fontWeight="medium"
+                          >
+                            Distance from Source (m)
+                          </Text>
+                          <Text fontSize="xs" color="#94a3b8" mb={1}>
+                            Default: 1m
+                          </Text>
+                          <select
+                            name="distanceFromSource"
+                            value={input.distanceFromSource || 1}
+                            onChange={(e) =>
+                              setInput((prev) => ({
+                                ...prev,
+                                distanceFromSource: parseFloat(e.target.value),
+                              }))
+                            }
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              backgroundColor: "#1e293b",
+                              color: "#e2e8f0",
+                              border: "1px solid #334155",
+                              borderRadius: "6px",
+                              fontSize: "14px",
+                              cursor: "pointer",
+                              outline: "none",
+                            }}
+                          >
+                            <option value={1} style={{ background: "#1e293b" }}>1</option>
+                            <option value={1.5} style={{ background: "#1e293b" }}>1.5</option>
+                            <option value={2} style={{ background: "#1e293b" }}>2</option>
+                            <option value={3} style={{ background: "#1e293b" }}>3</option>
+                            <option value={4} style={{ background: "#1e293b" }}>4</option>
+                            <option value={5} style={{ background: "#1e293b" }}>5</option>
+                            <option value={6} style={{ background: "#1e293b" }}>6</option>
+                            <option value={7} style={{ background: "#1e293b" }}>7</option>
+                            <option value={8} style={{ background: "#1e293b" }}>8</option>
+                            <option value={9} style={{ background: "#1e293b" }}>9</option>
+                            <option value={10} style={{ background: "#1e293b" }}>10</option>
+                          </select>
+                        </Box>
+                      </Grid>
+                    </Box>
+                  </Box>
+
                   {/* Error/Warning Message */}
                   {message && (
                     <Box
@@ -691,8 +816,8 @@ export default function HomePage() {
                         message.type === "error"
                           ? "rgba(239, 68, 68, 0.1)"
                           : message.type === "warning"
-                          ? "rgba(245, 158, 11, 0.1)"
-                          : "rgba(34, 197, 94, 0.1)"
+                            ? "rgba(245, 158, 11, 0.1)"
+                            : "rgba(34, 197, 94, 0.1)"
                       }
                       borderRadius="lg"
                       p={4}
@@ -701,8 +826,8 @@ export default function HomePage() {
                         message.type === "error"
                           ? "#fca5a5"
                           : message.type === "warning"
-                          ? "#fcd34d"
-                          : "#86efac"
+                            ? "#fcd34d"
+                            : "#86efac"
                       }
                       fontWeight="medium"
                       fontSize="sm"
@@ -711,8 +836,8 @@ export default function HomePage() {
                         message.type === "error"
                           ? "#dc2626"
                           : message.type === "warning"
-                          ? "#d97706"
-                          : "#16a34a"
+                            ? "#d97706"
+                            : "#16a34a"
                       }
                       transition="all 0.2s ease-in-out"
                     >

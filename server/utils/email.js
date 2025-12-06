@@ -62,27 +62,29 @@ export const sendWelcomeEmail = async (email, firstName) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
     to: email,
-    subject: 'Welcome to FanSelect Pro',
+    subject: 'Welcome to Mechatronics',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #1a1f3a 0%, #16213e 100%); padding: 30px; text-align: center; color: white; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0; font-size: 28px;">FanSelect Pro</h1>
+        <div style="background: linear-gradient(135deg, #1530c9ff 0%, #16213eff 100%); padding: 30px; text-align: center; color: white; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 28px;">Mechatronics</h1>
         </div>
         <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px;">
-          <h2 style="color: #333; margin-top: 0;">Welcome to FanSelect Pro!</h2>
+          <h2 style="color: #333; margin-top: 0;">Welcome to Mechatronics</h2>
           <p style="color: #666; line-height: 1.6;">
             Hi ${firstName},
           </p>
           <p style="color: #666; line-height: 1.6;">
-            Your account has been successfully created. You can now log in and start selecting the best fans for your projects.
+            You’re all set to start exploring our <strong>Fan Selection Software</strong>.
+            Use our tools to find the perfect fan for your project — efficient, reliable, and engineered to perform.
           </p>
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${process.env.FRONTEND_URL}/login" style="background: #0ea5e9; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            <a href="${process.env.FRONTEND_URL}/login"
+               style="background: #0ea5e9; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
               Go to Login
             </a>
           </div>
           <p style="color: #999; font-size: 12px; line-height: 1.6;">
-            If you have any questions, feel free to contact our support team.
+            If you have any questions, feel free to contact our support team — we’re here to help!
           </p>
         </div>
       </div>

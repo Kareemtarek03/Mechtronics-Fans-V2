@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaUser } from "react-icons/fa";
+import { FaHome, FaChartBar, FaDatabase, FaCog } from "react-icons/fa";
 import { authAPI } from "../api/auth";
 import logo from "../assets/ME Logo.svg";
 import "./Header.css";
@@ -71,17 +71,25 @@ export default function Header() {
     navigate("/login");
   };
 
-  const navItems = userRole === "admin"
+  // Determine nav items based on user role and current page
+  let navItems = userRole === "admin"
     ? [
-        { name: "Home", path: "/fan-selection" },
-        { name: "Selection Result", path: "/results" },
-        { name: "Fan Data", path: "/fans" },
-        { name: "Motor Data", path: "/motors" },
-      ]
+      { name: "Home", path: "/dashboard", icon: FaHome },
+      { name: "Results", path: "/results", icon: FaChartBar },
+      { name: "Fan Data", path: "/fans", icon: FaDatabase },
+      { name: "Motor Data", path: "/motors", icon: FaCog },
+    ]
     : [
-        { name: "Home", path: "/fan-selection" },
-        { name: "Selection Result", path: "/results" },
-      ];
+      { name: "Home", path: "/dashboard", icon: FaHome },
+      { name: "Results", path: "/results", icon: FaChartBar },
+    ];
+
+  // Hide "Home" and "Results" on admin dashboard page
+  if (location.pathname === "/admin/dashboard") {
+    navItems = navItems.filter(
+      (item) => item.path !== "/dashboard" && item.path !== "/results"
+    );
+  }
 
   return (
     <header
@@ -109,7 +117,7 @@ export default function Header() {
         }}
       >
         {/* Left: Logo and Name */}
-        <Link to="/fan-selection" style={{ textDecoration: "none" }}>
+        <Link to="/dashboard" style={{ textDecoration: "none" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <img
               src={logo}
@@ -132,13 +140,14 @@ export default function Header() {
           </div>
         </Link>
 
-        {/* Center: Navigation */}
-        <div style={{ display: "flex", gap: "3rem" }}>
+        {/* Center: Navigation with Icons */}
+        <div style={{ display: "flex", gap: "2.5rem" }}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const isDisabled =
               item.path === "/results" &&
               location.pathname === "/fan-selection";
+            const IconComponent = item.icon;
             return (
               <Link
                 key={item.path}
@@ -154,12 +163,23 @@ export default function Header() {
                     position: "relative",
                     cursor: "pointer",
                     padding: "0.25rem 0",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "0.25rem",
                   }}
                 >
+                  <IconComponent
+                    size={20}
+                    style={{
+                      color: isActive ? "white" : "#95A0CE",
+                      transition: "color 0.3s ease",
+                    }}
+                  />
                   <span
                     className={isActive ? "nav-item active" : "nav-item"}
                     style={{
-                      fontSize: "1.125rem",
+                      fontSize: "0.875rem",
                       fontWeight: 500,
                       color: isActive ? "white" : "#95A0CE",
                       transition: "color 0.3s ease",
@@ -170,8 +190,9 @@ export default function Header() {
                   <div
                     style={{
                       position: "absolute",
-                      bottom: "-2px",
-                      left: 0,
+                      bottom: "-4px",
+                      left: "50%",
+                      transform: "translateX(-50%)",
                       width: isActive ? "100%" : "0",
                       height: "2px",
                       background: "white",
@@ -222,7 +243,9 @@ export default function Header() {
                 e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              <FaUser size={20} />
+              <span style={{ fontSize: "1.1rem", fontWeight: "bold" }}>
+                {userData?.firstName?.[0]?.toUpperCase() || "U"}
+              </span>
             </button>
 
             {/* Dropdown Menu */}

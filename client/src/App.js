@@ -12,6 +12,9 @@ import ResultsPage from "./pages/ResultsPage";
 import GraphDetailPage from "./pages/GraphDetailPage";
 import FanData from "./pages/FanData";
 import MotorData from "./pages/Motor";
+import Dashboard from "./pages/Dashboard";
+import FanCategories from "./pages/FanCategories";
+import UnitConverter from "./pages/UnitConverter";
 import { Login } from "./components/auth/Login";
 import { Signup } from "./components/auth/Signup";
 import { ForgotPassword3Step } from "./components/auth/ForgotPassword3Step";
@@ -29,6 +32,19 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword3Step />} />
 
+          {/* Protected Dashboard Route - excludes super_admin */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute excludeSuperAdmin={true}>
+                <div style={{ minHeight: "100vh", background: "#0f172a" }}>
+                  <Header />
+                  <Dashboard />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
           {/* Protected Admin Route */}
           <Route
             path="/admin/dashboard"
@@ -39,12 +55,25 @@ function App() {
             }
           />
 
+          {/* Protected Fan Categories Route */}
+          <Route
+            path="/fan-categories"
+            element={
+              <ProtectedRoute excludeSuperAdmin={true}>
+                <div style={{ minHeight: "100vh", background: "#0f172a" }}>
+                  <Header />
+                  <FanCategories />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
           {/* Protected Fan Selection Routes */}
           <Route
             path="/fan-selection"
             element={
-              <ProtectedRoute>
-                <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
+              <ProtectedRoute excludeSuperAdmin={true}>
+                <div style={{ minHeight: "100vh", background: "#0f172a" }}>
                   <Header />
                   <HomePage />
                 </div>
@@ -104,6 +133,19 @@ function App() {
                   <div style={{ padding: "40px", textAlign: "center" }}>
                     Datasheets page coming soon...
                   </div>
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Unit Converter Route */}
+          <Route
+            path="/unit-converter"
+            element={
+              <ProtectedRoute excludeSuperAdmin={true}>
+                <div style={{ minHeight: "100vh", background: "#0f172a" }}>
+                  <Header />
+                  <UnitConverter />
                 </div>
               </ProtectedRoute>
             }

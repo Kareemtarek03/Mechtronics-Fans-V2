@@ -22,7 +22,7 @@ export const FormProvider = ({ children }) => {
     }
   };
 
-  const [units, setUnits] = useState(() => 
+  const [units, setUnits] = useState(() =>
     loadFromStorage('fanSelector_units', {
       airFlow: null,
       pressure: null,
@@ -40,6 +40,9 @@ export const FormProvider = ({ children }) => {
       NoPhases: null,
       Safety: null,
       SPF: null,
+      // Sound Data fields
+      directivityFactor: 2,  // Q - default value
+      distanceFromSource: 1, // r - default value in meters
     })
   );
 
@@ -75,6 +78,8 @@ export const FormProvider = ({ children }) => {
       NoPhases: null,
       Safety: null,
       SPF: null,
+      directivityFactor: 2,
+      distanceFromSource: 1,
     });
     setResults(null);
     localStorage.removeItem('fanSelector_units');

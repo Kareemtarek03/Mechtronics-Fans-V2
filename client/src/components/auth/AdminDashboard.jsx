@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { authAPI, adminAPI } from "../../api/auth.js";
 import { Alert } from "./Alert.jsx";
+import Header from "../Header";
 import "./AdminDashboard.css";
 
 export const AdminDashboard = () => {
@@ -186,10 +187,6 @@ export const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "Never";
@@ -268,28 +265,10 @@ export const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
-      {/* Header */}
-      <header className="dashboard-header">
-        <div className="header-content">
-          <div className="brand">
-            <span className="brand-icon">📊</span>
-            <h1>Fan Selection Software</h1>
-          </div>
-          <div className="header-actions">
-            <button className="notification-btn">
-              <span>🔔</span>
-            </button>
-            <div className="user-menu">
-              <span className="user-avatar">👤</span>
-              <button onClick={handleLogout} className="logout-btn">
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Header with Navigation */}
+      <Header />
 
-      <div className="dashboard-container">
+      <div className="dashboard-container" style={{ marginTop: "80px" }}>
         {/* Page Title */}
         <div className="page-header">
           <h2>User Management</h2>

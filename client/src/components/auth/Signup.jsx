@@ -140,15 +140,25 @@ export const Signup = () => {
 
     try {
       const fullPhone = formData.phone ? `${formData.countryCode}${formData.phone}` : '';
-      const response = await authAPI.signup({
+      await authAPI.signup({
         ...formData,
         phone: fullPhone
       });
-      localStorage.setItem('token', response.data.token);
-      setAlert({ type: 'success', message: 'Account created successfully!' });
+      
+      // Show success message
+      setAlert({ 
+        type: 'success', 
+        message: 'Account created successfully! Please log in to continue.' 
+      });
+      
+      // Redirect to login page after 2 seconds
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+        navigate('/login', { 
+          state: { 
+            message: 'Account created successfully! Please log in to continue.' 
+          } 
+        });
+      }, 2000);
     } catch (error) {
       setAlert({
         type: 'error',

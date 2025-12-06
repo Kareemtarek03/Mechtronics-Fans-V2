@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authAPI } from '../../api/auth.js';
 import { Alert } from './Alert.jsx';
 import './AuthForm.css';
 
 export const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -13,6 +14,18 @@ export const Login = () => {
     email: '',
     password: ''
   });
+
+  // Show success message if redirected from signup
+  useEffect(() => {
+    if (location.state?.message) {
+      setAlert({
+        type: 'success',
+        message: location.state.message
+      });
+      // Clear the state to prevent showing message on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,11 +48,11 @@ export const Login = () => {
       // Store token and user data
       const token = response.data.token;
       const userRole = response.data.user.role;
-      
+
       console.log('✅ Login response received:', response.data);
       console.log('👤 User role from response:', userRole);
       console.log('👤 User role type:', typeof userRole);
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('userRole', userRole);
       localStorage.setItem('firstName', response.data.user.firstName);
@@ -56,8 +69,8 @@ export const Login = () => {
         console.log('🚀 Redirecting to admin dashboard...');
         navigate('/admin/dashboard', { replace: true });
       } else {
-        console.log('🚀 Redirecting to fan selection... (role:', userRole, ')');
-        navigate('/fan-selection', { replace: true });
+        console.log('🚀 Redirecting to user dashboard... (role:', userRole, ')');
+        navigate('/dashboard', { replace: true });
       }
     } catch (error) {
       console.error('❌ Login error:', error);
