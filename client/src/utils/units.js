@@ -39,7 +39,7 @@ export const fanTypeUnits = createListCollection({
     { label: "SF", value: "SF" },
     { label: "ABSF-C", value: "ABSF-C" },
     { label: "ABSF-S", value: "ABSF-S" },
-    { label: "SWF", value: "SWF" },
+    { label: "SABF", value: "SABF" },
     { label: "SARTF", value: "SARTF" },
     { label: "AJF", value: "AJF" },
   ],

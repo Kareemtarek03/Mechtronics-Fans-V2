@@ -180,7 +180,7 @@ export async function deleteFanDataController(req, res) {
         dbErr?.message
       );
       try {
-        const filePath = new URL("../../output.json", import.meta.url);
+        const filePath = new URL("../../axialFan.json", import.meta.url);
         const p = filePath.pathname;
         let arr = JSON.parse(fs.readFileSync(p, "utf8") || "[]");
         const before = arr.length;

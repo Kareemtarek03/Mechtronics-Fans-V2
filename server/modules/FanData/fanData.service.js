@@ -127,19 +127,43 @@ function recalcFanPerformance(fan, input) {
 }
 
 // Main Service Function
+// Map frontend fan type values to database column names
+const fanTypeToDbColumn = {
+  "AF-S": "AFS",
+  "AF-L": "AFL",
+  "WF": "WF",
+  "ARTF": "ARTF",
+  "SF": "SF",
+  "ABSF-C": "ABSFC",
+  "ABSF-S": "ABSFS",
+  "SWF": "SABF",
+  "SARTF": "SARTF",
+  "AJF": "AJF",
+};
+
 export async function processFanDataService(inputOptions) {
   const { filePath, units, input, dataSource } = inputOptions;
+  const fanType = units?.fanType;
 
   let rawData = [];
 
   // If caller explicitly requests DB or passes filePath === 'db', fetch from DB
   if (dataSource === "db" || filePath === "db") {
+    // Build where clause to filter by fan type if provided
+    const whereClause = {};
+    if (fanType && fanTypeToDbColumn[fanType]) {
+      const dbColumn = fanTypeToDbColumn[fanType];
+      whereClause[dbColumn] = 1;
+    }
+
     // read from Prisma FanData table and map DB rows to the expected nested shape
-    const rows = await prisma.fanData.findMany();
+    const rows = await prisma.fanData.findMany({ where: whereClause });
     rawData = rows
       .map((r) => ({
         // map flattened DB fields to the nested structure the rest of the service expects
         Id: r.id,
+        No: r.No, // Include the No field from database
+        Model: r.Model, // Include the Model field from database
         Blades: {
           symbol: r.bladesSymbol,
           material: r.bladesMaterial,
@@ -165,6 +189,17 @@ export async function processFanDataService(inputOptions) {
         bladesAngle: r.bladesAngle,
         impellerConf: r.impellerConf,
         impellerInnerDia: r.impellerInnerDia,
+        // Fan type flags
+        AFS: r.AFS,
+        AFL: r.AFL,
+        WF: r.WF,
+        ARTF: r.ARTF,
+        SF: r.SF,
+        ABSFC: r.ABSFC,
+        ABSFS: r.ABSFS,
+        SABF: r.SABF,
+        SARTF: r.SARTF,
+        AJF: r.AJF,
       }))
       .sort((a, b) => a.Id - b.Id);
   } else {
@@ -172,7 +207,7 @@ export async function processFanDataService(inputOptions) {
     const resolvedPath =
       filePath && path.isAbsolute(filePath)
         ? filePath
-        : path.join(__dirname, "..", "..", filePath || "output.json");
+        : path.join(__dirname, "..", "..", filePath || "axialFan.json");
     rawData = JSON.parse(fs.readFileSync(resolvedPath, "utf8"));
   }
 
@@ -296,7 +331,7 @@ function loadFansFromRecalculatedOutput(fans) {
 export async function main(InputData) {
   let result = [];
   const inputOptions = {
-    filePath: InputData.filePath || "output.json",
+    filePath: InputData.filePath || "axialFan.json",
     dataSource: InputData.dataSource, // optional: set to 'db' to read from DB
     units: InputData.units,
     input: {
@@ -375,7 +410,7 @@ export async function main(InputData) {
 
 export async function Output({ units, input, dataSource }) {
   try {
-    const filePath = "output.json";
+    const filePath = "axialFan.json";
     // main expects RPM/TempC/airFlow at top-level of its InputData argument
     const result = await main({
       filePath: dataSource === "db" ? "db" : filePath,
@@ -437,16 +472,16 @@ export async function Output({ units, input, dataSource }) {
     const noPoles = calcNoPoles(input.RPM);
 
     // Add FanModel property to each filtered fan
+    // Fan type prefix is validated by the database filter (only fans with fanType column = 1 are returned)
     const filtered = (candidates || [])
       .filter(hasValidPredictions)
       .map((fan) => {
         const blades = fan.Blades || {};
         const impeller = fan.Impeller || {};
-        const FanModel = `${units.fanType || ""}-${impeller.innerDia || ""}-${
-          blades.noBlades || ""
-        }\\${blades.angle || ""}\\${blades.material || ""}${
-          blades.symbol || ""
-        }-${noPoles}${input.NoPhases == 3 ? "T" : "M"}`;
+        // Generate model string with validated fan type prefix
+        const FanModel = `${units.fanType || ""}-${impeller.innerDia || ""}-${blades.noBlades || ""
+          }\\${blades.angle || ""}\\${blades.material || ""}${blades.symbol || ""
+          }-${noPoles}${input.NoPhases == 3 ? "T" : "M"}`;
 
         return { FanModel, ...fan };
       });
@@ -497,7 +532,7 @@ export async function Output({ units, input, dataSource }) {
         null;
       const fPowerVal =
         typeof fanPowerCandidate === "number" &&
-        !Number.isNaN(fanPowerCandidate)
+          !Number.isNaN(fanPowerCandidate)
           ? fanPowerCandidate
           : fPower;
       const fPowerFinal =
@@ -592,7 +627,7 @@ export async function exportFanData(res) {
   } catch (e) {
     try {
       const raw = fs.readFileSync(
-        path.join(__dirname, "..", "..", "output.json"),
+        path.join(__dirname, "..", "..", "axialFan.json"),
         "utf8"
       );
       data = JSON.parse(raw || "[]");
@@ -857,7 +892,7 @@ export async function importFanDataFromExcel(
   } catch (err) {
     // fallback to file write
     try {
-      const filePath = path.join(__dirname, "..", "..", "output.json");
+      const filePath = path.join(__dirname, "..", "..", "axialFan.json");
       const existing = JSON.parse(fs.readFileSync(filePath, "utf8") || "[]");
       const merged = existing.concat(records);
       fs.writeFileSync(filePath, JSON.stringify(merged, null, 2), "utf8");

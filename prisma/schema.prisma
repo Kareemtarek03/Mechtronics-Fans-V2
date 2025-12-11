@@ -56,6 +56,18 @@ model PasswordReset {
 }
 model FanData {
   id               Int       @id @default(autoincrement())
+  No               Int?
+  Model            String?
+  AFS              Int?      @map("AF-S")
+  AFL              Int?      @map("AF-L")
+  WF               Int?
+  ARTF             Int?
+  SF               Int?
+  ABSFC            Int?      @map("ABSF-C")
+  ABSFS            Int?      @map("ABSF-S")
+  SABF             Int?
+  SARTF            Int?
+  AJF              Int?
   bladesSymbol     String
   bladesMaterial   String
   noBlades         Int

@@ -41,11 +41,23 @@ async function seedSuperAdmin() {
 }
 async function seedFanData() {
   console.log("🌬️ Seeding FanData...");
-  const fans = JSON.parse(fs.readFileSync("./server/output.json", "utf-8"));
+  const fans = JSON.parse(fs.readFileSync("./server/axialFan.json", "utf-8"));
 
   for (const fanJson of fans) {
     await prisma.fanData.create({
       data: {
+        No: fanJson.No,
+        Model: fanJson.Model,
+        AFS: fanJson["AF-S"],
+        AFL: fanJson["AF-L"],
+        WF: fanJson.WF,
+        ARTF: fanJson.ARTF,
+        SF: fanJson.SF,
+        ABSFC: fanJson["ABSF-C"],
+        ABSFS: fanJson["ABSF-S"],
+        SABF: fanJson.SABF,
+        SARTF: fanJson.SARTF,
+        AJF: fanJson.AJF,
         bladesSymbol: fanJson.Blades.symbol,
         bladesMaterial: fanJson.Blades.material,
         noBlades: fanJson.Blades.noBlades,

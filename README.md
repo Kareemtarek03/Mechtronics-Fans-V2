@@ -14,7 +14,7 @@ Mecha-Eg-Fullstack/
 │   ├── modules/
 │   │   └── FanData/
 │   ├── index.js
-│   ├── output.json
+│   ├── axialFan.json
 │   └── MotorData.json
 ├── package.json           # Root package.json
 ├── render.yaml           # Render.com configuration

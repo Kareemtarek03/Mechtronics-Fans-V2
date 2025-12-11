@@ -119,26 +119,26 @@ function calculateSoundPowerSpectrum(fanInputPower, staticPressure, motorEfficie
   // Octave band frequencies and their corrections from LW(A) and LP(A)
   // LW corrections
   const lwOctaveBands = [
-    { frequency: 62, correction: -31.7, label: '62 Hz' },
-    { frequency: 125, correction: -20.7, label: '125 Hz' },
-    { frequency: 250, correction: -4.2, label: '250 Hz' },
-    { frequency: 500, correction: -6.7, label: '500 Hz' },
-    { frequency: 1000, correction: -5.7, label: '1 kHz' },
-    { frequency: 2000, correction: -7.7, label: '2 kHz' },
-    { frequency: 4000, correction: -10.7, label: '4 kHz' },
-    { frequency: 8000, correction: -15.7, label: '8 kHz' },
+    { frequency: 62, correction: -31.7, label: '62 ' },
+    { frequency: 125, correction: -20.7, label: '125 ' },
+    { frequency: 250, correction: -4.2, label: '250 ' },
+    { frequency: 500, correction: -6.7, label: '500 ' },
+    { frequency: 1000, correction: -5.7, label: '1000' },
+    { frequency: 2000, correction: -7.7, label: '2000' },
+    { frequency: 4000, correction: -10.7, label: '4000' },
+    { frequency: 8000, correction: -15.7, label: '8000' },
   ];
 
   // LP(A) corrections (from the image provided)
   const lpOctaveBands = [
-    { frequency: 62, correction: -31.81, label: '62 Hz' },
-    { frequency: 125, correction: -20.81, label: '125 Hz' },
-    { frequency: 250, correction: -4.31, label: '250 Hz' },
-    { frequency: 500, correction: -6.81, label: '500 Hz' },
-    { frequency: 1000, correction: -5.81, label: '1 kHz' },
-    { frequency: 2000, correction: -7.81, label: '2 kHz' },
-    { frequency: 4000, correction: -10.81, label: '4 kHz' },
-    { frequency: 8000, correction: -15.81, label: '8 kHz' },
+    { frequency: 62, correction: -31.81, label: '62' },
+    { frequency: 125, correction: -20.81, label: '125' },
+    { frequency: 250, correction: -4.31, label: '250' },
+    { frequency: 500, correction: -6.81, label: '500' },
+    { frequency: 1000, correction: -5.81, label: '1000' },
+    { frequency: 2000, correction: -7.81, label: '2000' },
+    { frequency: 4000, correction: -10.81, label: '4000' },
+    { frequency: 8000, correction: -15.81, label: '8000' },
   ];
 
   // Calculate sound power level for each octave band (LW)
@@ -241,7 +241,7 @@ export default function ResultsPage() {
         {/* Header */}
         <div className="results-header" style={{ marginBottom: '2rem' }}>
           <h1 style={{ fontSize: '2rem', color: '#ffffff', marginBottom: '1rem', fontWeight: 'bold' }}>
-            Selected Fans Comparison
+            Matched Fans
           </h1>
         </div>
 
@@ -250,6 +250,7 @@ export default function ResultsPage() {
           <table className="results-table">
             <thead>
               <tr>
+                <th className="center">No</th>
                 <th className="center">Model Number</th>
                 <th className="center">Static Pressure ({units?.pressure || getDefaultForField("units", "pressure")})</th>
                 <th className="center">Fan Input Power ({units?.power || getDefaultForField("units", "power")})</th>
@@ -277,6 +278,7 @@ export default function ResultsPage() {
                     className={selectedFanIndex === idx ? "selected" : ""}
                     onClick={() => setSelectedFanIndex(selectedFanIndex === idx ? null : idx)}
                   >
+                    <td className="center">{fan.No ?? "-"}</td>
                     <td className="center">
                       <span className="fan-model">{fan.FanModel || `Model ${fan.Id}`}</span>
                     </td>
@@ -524,73 +526,257 @@ export default function ResultsPage() {
                   {activeTab === 'curve' && (
                     <div style={{ marginBottom: '1.5rem' }}>
                       <div className="detail-card" style={{ position: 'relative' }}>
-                        <h4>{graphTypes[currentGraphIndex].name}</h4>
-                        <div style={{ width: '100%', height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <h4>Fan Performance Curves</h4>
+                        {/* Legend */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'center', marginBottom: '1rem' }}>
+                          {graphTypes.map((graph) => (
+                            <div key={graph.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ width: '20px', height: '3px', backgroundColor: graph.color }}></div>
+                              <span style={{ color: graph.color, fontSize: '0.85rem', fontWeight: '500' }}>{graph.name}</span>
+                            </div>
+                          ))}
+                          {/* System Curve Legend */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ width: '20px', height: '3px', backgroundColor: '#ef4444', borderStyle: 'dashed' }}></div>
+                            <span style={{ color: '#ef4444', fontSize: '0.85rem', fontWeight: '500' }}>System Curve</span>
+                          </div>
+                        </div>
+                        <div style={{ width: '100%', height: '450px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <ResponsiveContainer width="100%" height="100%">
                             {(() => {
-                              const currentGraph = graphTypes[currentGraphIndex];
-                              const airflowData = item[currentGraph.airflowKey] || [];
-                              const yData = item[currentGraph.dataKey] || [];
+                              // Get airflow data for x-axis
+                              const airflowData = item['AirFlowNew'] || [];
 
-                              // Filter out null/undefined values and sort by airflow
-                              const validIndices = [];
-                              for (let i = 0; i < airflowData.length; i++) {
-                                if (airflowData[i] != null && yData[i] != null &&
-                                  !isNaN(airflowData[i]) && !isNaN(yData[i])) {
-                                  validIndices.push(i);
-                                }
+                              // Build combined data for all curves
+                              // First, get all valid airflow values and sort them
+                              const validAirflows = airflowData.filter(v => v != null && !isNaN(v)).map(Number);
+                              if (validAirflows.length < 2) {
+                                return <div style={{ color: '#94a3b8' }}>Insufficient data for curves</div>;
                               }
 
-                              // Sort indices by airflow value
-                              validIndices.sort((a, b) => airflowData[a] - airflowData[b]);
+                              const xMin = Math.min(...validAirflows);
+                              const xMax = Math.max(...validAirflows);
 
-                              // Create sorted arrays
-                              const xArray = validIndices.map(i => Number(airflowData[i]));
-                              const yArray = validIndices.map(i => Number(yData[i]) * (currentGraph.multiplier || 1));
+                              // Generate evenly spaced x-axis ticks (10-12 ticks)
+                              const tickCount = 12;
+                              const rawStep = (xMax - xMin) / (tickCount - 1);
+                              // Round step to a nice number
+                              const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+                              const niceStep = Math.ceil(rawStep / magnitude) * magnitude;
+                              const niceMin = Math.floor(xMin / niceStep) * niceStep;
+                              const niceMax = Math.ceil(xMax / niceStep) * niceStep;
+                              const xTicks = [];
+                              for (let tick = niceMin; tick <= niceMax; tick += niceStep) {
+                                xTicks.push(Math.round(tick));
+                              }
 
-                              // Apply piecewise cubic interpolation (same as backend)
-                              const interpolatedData = xArray.length >= 2
-                                ? cubicSplineInterpolation(xArray, yArray, 100)
-                                : xArray.map((x, i) => ({ x, y: yArray[i] }));
+                              // Prepare interpolated data for each curve
+                              const curveData = {};
+                              graphTypes.forEach((graph) => {
+                                const yData = item[graph.dataKey] || [];
+                                const validIndices = [];
+                                for (let i = 0; i < airflowData.length; i++) {
+                                  if (airflowData[i] != null && yData[i] != null &&
+                                    !isNaN(airflowData[i]) && !isNaN(yData[i])) {
+                                    validIndices.push(i);
+                                  }
+                                }
+                                validIndices.sort((a, b) => airflowData[a] - airflowData[b]);
+                                const xArray = validIndices.map(i => Number(airflowData[i]));
+                                const yArray = validIndices.map(i => Number(yData[i]) * (graph.multiplier || 1));
+
+                                if (xArray.length >= 2) {
+                                  curveData[graph.dataKey] = cubicSplineInterpolation(xArray, yArray, 100);
+                                } else {
+                                  curveData[graph.dataKey] = xArray.map((x, i) => ({ x, y: yArray[i] }));
+                                }
+                              });
+
+                              // Merge all curve data into a single dataset keyed by x
+                              const mergedDataMap = new Map();
+                              graphTypes.forEach((graph) => {
+                                const data = curveData[graph.dataKey] || [];
+                                data.forEach((point) => {
+                                  const xKey = point.x.toFixed(2);
+                                  if (!mergedDataMap.has(xKey)) {
+                                    mergedDataMap.set(xKey, { x: point.x });
+                                  }
+                                  mergedDataMap.get(xKey)[graph.dataKey] = point.y;
+                                });
+                              });
+
+                              // Calculate System Curve: y = a * x²
+                              // a = predictedStaticPressure / (userAirflowInput²)
+                              const itemPredictions = item.predictions || {};
+                              const predictedStaticPressure = itemPredictions.StaticPressurePred;
+                              const userAirflowInput = input?.airFlow;
+
+                              if (predictedStaticPressure && userAirflowInput && userAirflowInput > 0) {
+                                const coefficientA = predictedStaticPressure / Math.pow(userAirflowInput, 2);
+
+                                // Generate System Curve points for all x values in mergedDataMap
+                                mergedDataMap.forEach((dataPoint, xKey) => {
+                                  const x = dataPoint.x;
+                                  const systemY = coefficientA * Math.pow(x, 2);
+                                  dataPoint.SystemCurve = systemY;
+                                });
+                              }
+
+                              // Convert to array and sort by x
+                              const mergedData = Array.from(mergedDataMap.values()).sort((a, b) => a.x - b.x);
+
+                              // Calculate max values for each axis type
+                              const maxPressure = Math.max(
+                                ...mergedData.map(d => Math.max(d.StaticPressureNew || 0, d.VelocityPressureNew || 0))
+                              );
+                              const maxPower = Math.max(...mergedData.map(d => d.FanInputPowerNew || 0));
+                              const maxEfficiency = Math.max(
+                                ...mergedData.map(d => Math.max(d.FanStaticEfficiency || 0, d.FanTotalEfficiency || 0))
+                              );
+
+                              // Get prediction values for summary
+                              const predictions = item.predictions || {};
 
                               return (
-                                <LineChart data={interpolatedData} margin={{ top: 20, right: 40, left: 60, bottom: 50 }}>
+                                <LineChart data={mergedData} margin={{ top: 20, right: 120, left: 60, bottom: 50 }}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                   <XAxis
                                     dataKey="x"
                                     stroke="#94a3b8"
-                                    tick={{ fill: '#94a3b8' }}
+                                    tick={{ fill: '#94a3b8', fontSize: 11 }}
+                                    ticks={xTicks}
+                                    domain={[niceMin, niceMax]}
+                                    type="number"
                                     label={{
                                       value: `Airflow (${units?.airFlow || 'CFM'})`,
                                       position: "insideBottom",
                                       offset: -10,
                                       fill: "#e2e8f0",
-                                      style: { fontSize: '14px', fontWeight: '500' }
+                                      style: { fontSize: '12px', fontWeight: '500' }
                                     }}
                                   />
+                                  {/* Left Y-Axis: Pressure (Pa) */}
                                   <YAxis
-                                    stroke="#94a3b8"
-                                    tick={{ fill: '#94a3b8' }}
+                                    yAxisId="pressure"
+                                    orientation="left"
+                                    stroke="#3b82f6"
+                                    tick={{ fill: '#3b82f6', fontSize: 11 }}
+                                    domain={[0, Math.ceil(maxPressure * 1.1)]}
                                     label={{
-                                      value: `${currentGraph.name} (${currentGraph.unit})`,
+                                      value: `Pressure (${units?.pressure || 'Pa'})`,
                                       angle: -90,
                                       position: "insideLeft",
+                                      offset: -10,
+                                      fill: "#3b82f6",
+                                      style: { fontSize: '16px', fontWeight: '500', textAnchor: 'middle' }
+                                    }}
+                                  />
+                                  {/* Right Y-Axis: Efficiency (%) */}
+                                  <YAxis
+                                    yAxisId="efficiency"
+                                    orientation="right"
+                                    stroke="#8b5cf6"
+                                    tick={{ fill: '#8b5cf6', fontSize: 11 }}
+                                    domain={[0, 100]}
+                                    label={{
+                                      value: 'Efficiency (%)',
+                                      angle: 90,
+                                      position: "right",
                                       offset: 0,
-                                      fill: "#e2e8f0",
-                                      style: { fontSize: '14px', fontWeight: '500', textAnchor: 'middle' }
+                                      dx: -20,
+                                      fill: "#8b5cf6",
+                                      style: { fontSize: '16px', fontWeight: '600', textAnchor: 'middle' }
+                                    }}
+                                  />
+                                  {/* Far Right Y-Axis: Power (kW) */}
+                                  <YAxis
+                                    yAxisId="power"
+                                    orientation="right"
+                                    stroke="#10b981"
+                                    tick={{ fill: '#10b981', fontSize: 11 }}
+                                    domain={[0, Math.ceil(maxPower * 1.2)]}
+                                    axisLine={{ stroke: '#10b981' }}
+                                    tickLine={{ stroke: '#10b981' }}
+                                    label={{
+                                      value: `Power (${units?.power || 'kW'})`,
+                                      angle: 90,
+                                      position: "right",
+                                      offset: 0,
+                                      dx: 3,
+                                      fill: "#10b981",
+                                      style: { fontSize: '16px', fontWeight: '600', textAnchor: 'middle' }
                                     }}
                                   />
                                   <Tooltip
                                     contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "8px", color: "#e2e8f0" }}
-                                    formatter={(value) => [value.toFixed(2), currentGraph.name]}
-                                    labelFormatter={(label) => `Airflow: ${label.toFixed(2)}`}
+                                    formatter={(value, name) => {
+                                      if (name === 'SystemCurve') {
+                                        return [value?.toFixed(2) || '-', 'System Curve'];
+                                      }
+                                      const graphType = graphTypes.find(g => g.dataKey === name);
+                                      return [value?.toFixed(2) || '-', graphType?.name || name];
+                                    }}
+                                    labelFormatter={(label) => `Airflow: ${Number(label).toFixed(0)} ${units?.airFlow || 'CFM'}`}
                                   />
+                                  {/* Static Pressure - Blue */}
                                   <Line
+                                    yAxisId="pressure"
                                     type="monotone"
-                                    dataKey="y"
-                                    stroke={currentGraph.color}
-                                    strokeWidth={3}
-                                    dot={{ fill: currentGraph.color, r: 3 }}
-                                    activeDot={{ r: 6, fill: currentGraph.color }}
+                                    dataKey="StaticPressureNew"
+                                    stroke="#3b82f6"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    isAnimationActive={true}
+                                  />
+                                  {/* Fan Input Power - Green */}
+                                  <Line
+                                    yAxisId="power"
+                                    type="monotone"
+                                    dataKey="FanInputPowerNew"
+                                    stroke="#10b981"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    isAnimationActive={true}
+                                  />
+                                  {/* Velocity Pressure - Orange */}
+                                  <Line
+                                    yAxisId="pressure"
+                                    type="monotone"
+                                    dataKey="VelocityPressureNew"
+                                    stroke="#f59e0b"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    isAnimationActive={true}
+                                  />
+                                  {/* Static Efficiency - Purple */}
+                                  <Line
+                                    yAxisId="efficiency"
+                                    type="monotone"
+                                    dataKey="FanStaticEfficiency"
+                                    stroke="#8b5cf6"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    isAnimationActive={true}
+                                  />
+                                  {/* Total Efficiency - Pink */}
+                                  <Line
+                                    yAxisId="efficiency"
+                                    type="monotone"
+                                    dataKey="FanTotalEfficiency"
+                                    stroke="#ec4899"
+                                    strokeWidth={2}
+                                    dot={false}
+                                    isAnimationActive={true}
+                                  />
+                                  {/* System Curve - Red Dashed */}
+                                  <Line
+                                    yAxisId="pressure"
+                                    type="monotone"
+                                    dataKey="SystemCurve"
+                                    stroke="#ef4444"
+                                    strokeWidth={2}
+                                    strokeDasharray="5 5"
+                                    dot={false}
                                     isAnimationActive={true}
                                   />
                                 </LineChart>
@@ -598,51 +784,51 @@ export default function ResultsPage() {
                             })()}
                           </ResponsiveContainer>
                         </div>
-                        {/* Arrow Navigation Buttons */}
-                        <div style={{ position: 'absolute', bottom: '0.5rem', right: '1.5rem', display: 'flex', gap: '0.5rem' }}>
-                          <button
-                            onClick={handlePrevGraph}
-                            style={{
-                              background: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: '40px',
-                              height: '40px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '1.25rem',
-                              transition: 'background 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.target.style.background = '#2563eb'}
-                            onMouseLeave={(e) => e.target.style.background = '#3b82f6'}
-                          >
-                            ←
-                          </button>
-                          <button
-                            onClick={handleNextGraph}
-                            style={{
-                              background: '#3b82f6',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '50%',
-                              width: '40px',
-                              height: '40px',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '1.25rem',
-                              transition: 'background 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.target.style.background = '#2563eb'}
-                            onMouseLeave={(e) => e.target.style.background = '#3b82f6'}
-                          >
-                            →
-                          </button>
-                        </div>
+                        {/* Summary Values */}
+                        {(() => {
+                          const predictions = item.predictions || {};
+                          return (
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(5, 1fr)',
+                              gap: '1rem',
+                              marginTop: '1.5rem',
+                              borderTop: '1px solid #334155',
+                              paddingTop: '1rem'
+                            }}>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '0.25rem' }}>SP</div>
+                                <div style={{ color: '#3b82f6', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                  {predictions.StaticPressurePred?.toFixed(2) || '-'} <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{units?.pressure || 'Pa'}</span>
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Power</div>
+                                <div style={{ color: '#10b981', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                  {predictions.FanInputPowerPred?.toFixed(3) || '-'} <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{units?.power || 'kW'}</span>
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '0.25rem' }}>VP</div>
+                                <div style={{ color: '#f59e0b', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                  {predictions.VelocityPressurePred?.toFixed(2) || '-'} <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{units?.pressure || 'Pa'}</span>
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '0.25rem' }}>η Static</div>
+                                <div style={{ color: '#8b5cf6', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                  {predictions.FanStaticEfficiencyPred ? (predictions.FanStaticEfficiencyPred * 100).toFixed(1) : '-'} <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>%</span>
+                                </div>
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ color: '#94a3b8', fontSize: '0.75rem', marginBottom: '0.25rem' }}>η Total</div>
+                                <div style={{ color: '#ec4899', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                                  {predictions.FanTotalEfficiencyPred ? (predictions.FanTotalEfficiencyPred * 100).toFixed(1) : '-'} <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>%</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   )}
@@ -742,7 +928,7 @@ export default function ResultsPage() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
                               {/* LW(A) Graph */}
                               <div className="detail-card">
-                                <h4>Power Spectrum of the sound power</h4>
+                                <h4>Sound Power Spectrum</h4>
                                 <div style={{ width: '100%', height: '350px' }}>
                                   <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={noiseData.lwSpectrum} margin={{ top: 20, right: 30, left: 50, bottom: 50 }}>
@@ -751,7 +937,7 @@ export default function ResultsPage() {
                                         dataKey="frequency"
                                         stroke="#94a3b8"
                                         tick={{ fill: '#94a3b8', fontSize: 11 }}
-                                        label={{ value: 'Frequency', position: 'insideBottom', offset: -10, fill: '#e2e8f0', style: { fontSize: '12px' } }}
+                                        label={{ value: 'Frequency ( HZ )', position: 'insideBottom', offset: -10, fill: '#e2e8f0', style: { fontSize: '12px' } }}
                                       />
                                       <YAxis
                                         stroke="#94a3b8"
@@ -776,7 +962,7 @@ export default function ResultsPage() {
 
                               {/* LP(A) Graph */}
                               <div className="detail-card">
-                                <h4>Power Spectrum of the sound pressure</h4>
+                                <h4>Sound Pressure Spectrum </h4>
                                 <div style={{ width: '100%', height: '350px' }}>
                                   <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={noiseData.lpSpectrum} margin={{ top: 20, right: 30, left: 50, bottom: 50 }}>
@@ -785,7 +971,7 @@ export default function ResultsPage() {
                                         dataKey="frequency"
                                         stroke="#94a3b8"
                                         tick={{ fill: '#94a3b8', fontSize: 11 }}
-                                        label={{ value: 'Frequency', position: 'insideBottom', offset: -10, fill: '#e2e8f0', style: { fontSize: '12px' } }}
+                                        label={{ value: 'Frequency ( HZ )', position: 'insideBottom', offset: -10, fill: '#e2e8f0', style: { fontSize: '12px' } }}
                                       />
                                       <YAxis
                                         stroke="#94a3b8"
