@@ -92,7 +92,58 @@ export async function deleteMotorById(id) {
 }
 
 export async function exportMotorData(res) {
-  const data = await readMotorFile();
+  let data = [];
+  try {
+    const raw = await readMotorFile();
+    data = raw.map((r) => ({
+      Id: r.id,
+      Material: r.material,
+      Model: r.model,
+      "Power (Kw)": r.powerKW,
+      "Speed RPM": r.speedRPM,
+      "No. Poles": r.NoPoles,
+      "Rated Current-In": r.rated?.currentInput ?? null,
+      "Rated Tourque": r.rated?.tourqueNm ?? null,
+      "Direct On Line Current": r.DOL?.current ?? null,
+      "Direct On Line La/ln": r.DOL?.laln ?? null,
+      "Direct On Line Tourque": r.DOL?.tourque ?? null,
+      "Direct On Line Ma/Mn": r.DOL?.MaMn ?? null,
+      "Delta Starting Current": r.starDelta?.current ?? null,
+      "Delta Starting La/ln": r.starDelta?.laln ?? null,
+      "Delta Starting Tourque": r.starDelta?.tourque ?? null,
+      "Delta Starting Ma/Mn": r.starDelta?.MaMn ?? null,
+      "Power Factor": r.powerFactor,
+      Phase: r.Phase,
+      "Frame Size": r.frameSize,
+      "Shaft Diameter": r.shaftDia,
+      "Shaft Length": r.shaftLength,
+      "Shaft Feather Key Length": r.shaftFeather,
+      IE: r.IE,
+      "Front Bearing": r.frontBear,
+      "Rear Bearing": r.rearBear,
+      "Noise Level (dB-A)": r.noiseLvl,
+      "Weight (Kg)": r.weightKg,
+      "Efficiency@50HZ":
+        Array.isArray(r.effCurve) && r.effCurve.length > 0
+          ? r.effCurve[0]
+          : null,
+      "Efficiency@37.5HZ":
+        Array.isArray(r.effCurve) && r.effCurve.length > 1
+          ? r.effCurve[1]
+          : null,
+      "Efficiency@25HZ":
+        Array.isArray(r.effCurve) && r.effCurve.length > 2
+          ? r.effCurve[2]
+          : null,
+      "No. of Capacitors": r.NoCapacitors,
+      "No. of Phases": r.NoPhases,
+      "Insulation Class": r.insClass,
+      "Power (HP)": r.powerHorse,
+    }));
+  } catch (err) {
+    console.error("Failed to read motor data for export:", err);
+    throw new Error("Failed to read motor data for export: " + err.message);
+  }
   const filename = "MotorData-export.xlsx";
 
   // convert JSON to worksheet

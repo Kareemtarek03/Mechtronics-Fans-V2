@@ -76,12 +76,14 @@ export default function Header() {
     ? [
       { name: "Home", path: "/dashboard", icon: FaHome },
       { name: "Results", path: "/results", icon: FaChartBar },
+      { name: "Projects", path: "/projects", icon: FaDatabase },
       { name: "Fan Data", path: "/fans", icon: FaDatabase },
       { name: "Motor Data", path: "/motors", icon: FaCog },
     ]
     : [
       { name: "Home", path: "/dashboard", icon: FaHome },
       { name: "Results", path: "/results", icon: FaChartBar },
+      { name: "Projects", path: "/projects", icon: FaDatabase },
     ];
 
   // Hide "Home" and "Results" on admin dashboard page

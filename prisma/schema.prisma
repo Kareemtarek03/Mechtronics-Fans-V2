@@ -27,6 +27,13 @@ model User {
   passwordResets PasswordReset[]
   adminLogs      AdminLog[]
 
+  // Projects relations
+  createdProjects        Project[]              @relation("CreatedProjects")
+  customerProjects       Project[]              @relation("CustomerProjects")
+  requestedProjectMotors ProjectMotor[]         @relation("RequestedProjectMotors")
+  approvedProjectMotors  ProjectMotor[]         @relation("ApprovedProjectMotors")
+  projectPermissions     ProjectUserPermission[]
+
   @@map("users")
 }
 
@@ -85,6 +92,8 @@ model FanData {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  projectMotors    ProjectMotor[]
+
   @@map("fan_data")
 }
 
@@ -118,6 +127,118 @@ model MotorData {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
+  projectMotors  ProjectMotor[]
+
   @@map("motor_data")
+}
+
+// =======================
+// Projects Module Models
+// =======================
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ProjectMotorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ProjectMotorAction {
+  ADD
+  DELETE
+}
+
+enum ProjectPermissionRole {
+  OWNER
+  COLLABORATOR
+  VIEWER
+}
+
+model Project {
+  id          Int            @id @default(autoincrement())
+  name        String
+  description String?
+  status      ProjectStatus  @default(ACTIVE)
+
+  // Who created the project (engineer / supervisor / customer)
+  creatorId   Int
+  creator     User           @relation("CreatedProjects", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // If a customer owns the project (for visibility rules)
+  customerId  Int?
+  customer    User?          @relation("CustomerProjects", fields: [customerId], references: [id], onDelete: SetNull)
+
+  // History of fan+motor operations associated with this project
+  motors      ProjectMotor[]
+
+  // Optional per-user permissions
+  permissions ProjectUserPermission[]
+
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Unique project name per creator (engineer/supervisor/customer)
+  @@unique([creatorId, name])
+
+  @@map("projects")
+}
+
+model ProjectMotor {
+  id            Int                @id @default(autoincrement())
+
+  projectId     Int
+  project       Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Link to existing fan and motor data
+  fanId         Int
+  fan           FanData            @relation(fields: [fanId], references: [id], onDelete: Cascade)
+
+  motorId       Int
+  motor         MotorData          @relation(fields: [motorId], references: [id], onDelete: Cascade)
+
+  action        ProjectMotorAction
+  status        ProjectMotorStatus @default(PENDING)
+
+  // Indicates if this record currently represents an active fan+motor pair
+  isActive      Boolean            @default(false)
+
+  // Who requested the change
+  requestedById Int
+  requestedBy   User               @relation("RequestedProjectMotors", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  // Who approved/rejected the update (supervisor only)
+  approvedById  Int?
+  approvedBy    User?              @relation("ApprovedProjectMotors", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  comment       String?
+
+  requestedAt   DateTime           @default(now())
+  decidedAt     DateTime?
+
+  @@index([projectId])
+  @@index([status])
+
+  @@map("project_motors")
+}
+
+model ProjectUserPermission {
+  id          Int                   @id @default(autoincrement())
+
+  projectId   Int
+  project     Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  userId      Int
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role        ProjectPermissionRole
+  canEditMeta Boolean               @default(false)
+
+  @@unique([projectId, userId])
+
+  @@map("project_user_permissions")
 }
 

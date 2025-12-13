@@ -193,7 +193,7 @@ export default function FanDataPage() {
   return (
     <Box p={4} mt={20} bg={"#0f172a"} color={"white"} pt={12}>
       <Heading mb={4} fontSize={"4xl"} textAlign={"center"}>
-        Fan Data (combined)
+        Fan Data
       </Heading>
 
       <Stack direction={"row"} justifyContent={"space-between"}>

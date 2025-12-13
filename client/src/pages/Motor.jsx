@@ -271,7 +271,7 @@ export default function MotorPage() {
   return (
     <Box p={4} bg={"#0f172a"} color={"white"} mt={20} pt={12}>
       <Heading mb={4} fontSize={"4xl"} textAlign={"center"}>
-        Motors
+        Motor Data
       </Heading>
 
       <Stack direction={"row"} justify="space-between">
@@ -292,6 +292,14 @@ export default function MotorPage() {
         </Box>
         <Box mb={4} display="flex" gap={2} alignItems="center">
           <Box mb={4} display="flex" gap={2} alignItems="center">
+            <Button
+              size="sm"
+              bg="#10b981"
+              _hover={{ bg: "#059669" }}
+              onClick={downloadMotorTemplate}
+            >
+              Download Template
+            </Button>
             <Button
               size="sm"
               bg="#3b82f6"
@@ -416,14 +424,6 @@ export default function MotorPage() {
               }}
             >
               Export Motor Data
-            </Button>
-            <Button
-              size="sm"
-              bg="#10b981"
-              _hover={{ bg: "#059669" }}
-              onClick={downloadMotorTemplate}
-            >
-              Download Template
             </Button>
           </Box>
         </Box>

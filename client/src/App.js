@@ -15,6 +15,8 @@ import MotorData from "./pages/Motor";
 import Dashboard from "./pages/Dashboard";
 import FanCategories from "./pages/FanCategories";
 import UnitConverter from "./pages/UnitConverter";
+import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import { Login } from "./components/auth/Login";
 import { Signup } from "./components/auth/Signup";
 import { ForgotPassword3Step } from "./components/auth/ForgotPassword3Step";
@@ -124,6 +126,31 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Projects Routes - accessible to engineers and admins */}
+          <Route
+            path="/projects"
+            element={
+              <ProtectedRoute>
+                <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
+                  <Header />
+                  <Projects />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId"
+            element={
+              <ProtectedRoute>
+                <div style={{ minHeight: "100vh", background: "#f7fafc" }}>
+                  <Header />
+                  <ProjectDetail />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/datasheets"
             element={

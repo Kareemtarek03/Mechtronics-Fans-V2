@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import fanDataRoutes from "./modules/FanData/fanData.route.js";
 import motorDataRoutes from "./modules/MotorData/motorData.route.js";
 import pdfRoutes from "./modules/PDF/pdf.route.js";
+import projectRoutes from "./modules/Projects/Project.route.js";
 import authRoutes from "./routes/auth.js";
 import adminRoutes from "./routes/admin.js";
 
@@ -39,6 +40,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/fan-data", fanDataRoutes);
 app.use("/api/motor-data", motorDataRoutes);
 app.use("/api/pdf", pdfRoutes);
+app.use("/api/projects", projectRoutes);
 
 // Serve static files from the React app build directory
 const clientBuildPath = path.join(__dirname, "..", "client", "build");
