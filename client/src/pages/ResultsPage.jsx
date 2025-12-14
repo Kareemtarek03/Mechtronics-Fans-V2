@@ -154,14 +154,14 @@ function calculateSoundPowerSpectrum(
     { frequency: 2000, correction: -7.7, label: "2 kHz" },
     { frequency: 4000, correction: -10.7, label: "4 kHz" },
     { frequency: 8000, correction: -15.7, label: "8 kHz" },
-    { frequency: 62, correction: -31.7, label: '62 ' },
-    { frequency: 125, correction: -20.7, label: '125 ' },
-    { frequency: 250, correction: -4.2, label: '250 ' },
-    { frequency: 500, correction: -6.7, label: '500 ' },
-    { frequency: 1000, correction: -5.7, label: '1000' },
-    { frequency: 2000, correction: -7.7, label: '2000' },
-    { frequency: 4000, correction: -10.7, label: '4000' },
-    { frequency: 8000, correction: -15.7, label: '8000' },
+    { frequency: 62, correction: -31.7, label: "62 " },
+    { frequency: 125, correction: -20.7, label: "125 " },
+    { frequency: 250, correction: -4.2, label: "250 " },
+    { frequency: 500, correction: -6.7, label: "500 " },
+    { frequency: 1000, correction: -5.7, label: "1000" },
+    { frequency: 2000, correction: -7.7, label: "2000" },
+    { frequency: 4000, correction: -10.7, label: "4000" },
+    { frequency: 8000, correction: -15.7, label: "8000" },
   ];
 
   // LP(A) corrections (from the image provided)
@@ -363,7 +363,7 @@ export default function ResultsPage() {
         setSavingToProject(false);
         return;
       }
-
+      console.log("Adding to project ID:", fan);
       // Add fan and motor to project
       const addResp = await fetch(
         `${process.env.REACT_APP_API_BASE_URL}/api/projects/${projectId}/motors`,
@@ -374,7 +374,7 @@ export default function ResultsPage() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            fanId: fan.id,
+            fanId: fan.Id,
             motorId: fan.matchedMotor.id,
             comment: `Added from results - ${fan.FanModel}`,
           }),
@@ -691,1065 +691,1057 @@ export default function ResultsPage() {
                   View Datasheet
                 </button>
               </div>
-
-              {/* Tab Buttons */}
-              <div
+            </div>
+            {/* Tab Buttons */}
+            <div
+              style={{
+                display: "flex",
+                gap: "1rem",
+                marginBottom: "2rem",
+                borderBottom: "2px solid #334155",
+              }}
+            >
+              <button
+                onClick={() => setActiveTab("performance")}
                 style={{
-                  display: "flex",
-                  gap: "1rem",
-                  marginBottom: "2rem",
-                  borderBottom: "2px solid #334155",
+                  background: "transparent",
+                  border: "none",
+                  padding: "1rem 2rem",
+                  color: activeTab === "performance" ? "#3b82f6" : "#cbd5e1",
+                  fontSize: "1rem",
+                  fontWeight: activeTab === "performance" ? "bold" : "normal",
+                  cursor: "pointer",
+                  borderBottom:
+                    activeTab === "performance"
+                      ? "3px solid #3b82f6"
+                      : "3px solid transparent",
+                  transition: "all 0.2s",
+                  marginBottom: "-2px",
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== "performance")
+                    e.target.style.color = "#e2e8f0";
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== "performance")
+                    e.target.style.color = "#cbd5e1";
                 }}
               >
-                <button
-                  onClick={() => setActiveTab("performance")}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    padding: "1rem 2rem",
-                    color: activeTab === "performance" ? "#3b82f6" : "#cbd5e1",
-                    fontSize: "1rem",
-                    fontWeight: activeTab === "performance" ? "bold" : "normal",
-                    cursor: "pointer",
-                    borderBottom:
-                      activeTab === "performance"
-                        ? "3px solid #3b82f6"
-                        : "3px solid transparent",
-                    transition: "all 0.2s",
-                    marginBottom: "-2px",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (activeTab !== "performance")
-                      e.target.style.color = "#e2e8f0";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeTab !== "performance")
-                      e.target.style.color = "#cbd5e1";
-                  }}
-                >
-                  Performance Data
-                </button>
-                <button
-                  onClick={() => setActiveTab("curve")}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    padding: "1rem 2rem",
-                    color: activeTab === "curve" ? "#3b82f6" : "#cbd5e1",
-                    fontSize: "1rem",
-                    fontWeight: activeTab === "curve" ? "bold" : "normal",
-                    cursor: "pointer",
-                    borderBottom:
-                      activeTab === "curve"
-                        ? "3px solid #3b82f6"
-                        : "3px solid transparent",
-                    transition: "all 0.2s",
-                    marginBottom: "-2px",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (activeTab !== "curve") e.target.style.color = "#e2e8f0";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeTab !== "curve") e.target.style.color = "#cbd5e1";
-                  }}
-                >
-                  Fan Curve
-                </button>
-                <button
-                  onClick={() => setActiveTab("noise")}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    padding: "1rem 2rem",
-                    color: activeTab === "noise" ? "#3b82f6" : "#cbd5e1",
-                    fontSize: "1rem",
-                    fontWeight: activeTab === "noise" ? "bold" : "normal",
-                    cursor: "pointer",
-                    borderBottom:
-                      activeTab === "noise"
-                        ? "3px solid #3b82f6"
-                        : "3px solid transparent",
-                    transition: "all 0.2s",
-                    marginBottom: "-2px",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (activeTab !== "noise") e.target.style.color = "#e2e8f0";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (activeTab !== "noise") e.target.style.color = "#cbd5e1";
-                  }}
-                >
-                  Noise Graph
-                </button>
-              </div>
+                Performance Data
+              </button>
+              <button
+                onClick={() => setActiveTab("curve")}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  padding: "1rem 2rem",
+                  color: activeTab === "curve" ? "#3b82f6" : "#cbd5e1",
+                  fontSize: "1rem",
+                  fontWeight: activeTab === "curve" ? "bold" : "normal",
+                  cursor: "pointer",
+                  borderBottom:
+                    activeTab === "curve"
+                      ? "3px solid #3b82f6"
+                      : "3px solid transparent",
+                  transition: "all 0.2s",
+                  marginBottom: "-2px",
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== "curve") e.target.style.color = "#e2e8f0";
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== "curve") e.target.style.color = "#cbd5e1";
+                }}
+              >
+                Fan Curve
+              </button>
+              <button
+                onClick={() => setActiveTab("noise")}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  padding: "1rem 2rem",
+                  color: activeTab === "noise" ? "#3b82f6" : "#cbd5e1",
+                  fontSize: "1rem",
+                  fontWeight: activeTab === "noise" ? "bold" : "normal",
+                  cursor: "pointer",
+                  borderBottom:
+                    activeTab === "noise"
+                      ? "3px solid #3b82f6"
+                      : "3px solid transparent",
+                  transition: "all 0.2s",
+                  marginBottom: "-2px",
+                }}
+                onMouseEnter={(e) => {
+                  if (activeTab !== "noise") e.target.style.color = "#e2e8f0";
+                }}
+                onMouseLeave={(e) => {
+                  if (activeTab !== "noise") e.target.style.color = "#cbd5e1";
+                }}
+              >
+                Noise Graph
+              </button>
+            </div>
 
-              {(() => {
-                const item = fans[selectedFanIndex];
-                const idx = selectedFanIndex;
-                const summaryFields = {
-                  FanModel: item.FanModel,
-                  Id: item.Id,
-                  RPM: item.RPM,
-                  desigDensity: item.desigDensity,
-                  InputDensity: item.InputDensity,
-                };
+            {(() => {
+              const item = fans[selectedFanIndex];
+              const idx = selectedFanIndex;
+              const summaryFields = {
+                FanModel: item.FanModel,
+                Id: item.Id,
+                RPM: item.RPM,
+                desigDensity: item.desigDensity,
+                InputDensity: item.InputDensity,
+              };
 
-                const blades = item.Blades
-                  ? `${item.Blades.symbol || ""}${
-                      item.Blades.material ? ` (${item.Blades.material})` : ""
-                    } - ${item.Blades.noBlades || ""} blades @ ${
-                      item.Blades.angle || ""
-                    }°`
-                  : null;
-                const imp = item.Impeller
-                  ? `${item.Impeller.conf || ""} (inner ${
-                      item.Impeller.innerDia || ""
-                    } mm)`
-                  : null;
+              const blades = item.Blades
+                ? `${item.Blades.symbol || ""}${
+                    item.Blades.material ? ` (${item.Blades.material})` : ""
+                  } - ${item.Blades.noBlades || ""} blades @ ${
+                    item.Blades.angle || ""
+                  }°`
+                : null;
+              const imp = item.Impeller
+                ? `${item.Impeller.conf || ""} (inner ${
+                    item.Impeller.innerDia || ""
+                  } mm)`
+                : null;
 
-                const motor = item.matchedMotor;
-                let motorEffAvg = null;
-                if (motor) {
-                  if (Array.isArray(motor.effCurve) && motor.effCurve.length) {
-                    motorEffAvg =
-                      motor.effCurve.reduce((a, b) => a + b, 0) /
-                      motor.effCurve.length;
-                  }
+              const motor = item.matchedMotor;
+              let motorEffAvg = null;
+              if (motor) {
+                if (Array.isArray(motor.effCurve) && motor.effCurve.length) {
+                  motorEffAvg =
+                    motor.effCurve.reduce((a, b) => a + b, 0) /
+                    motor.effCurve.length;
                 }
+              }
 
-                return (
-                  <div key={idx}>
-                    {/* Performance Data Section - Only show when activeTab is 'performance' */}
-                    {activeTab === "performance" && (
-                      <div style={{ marginBottom: "1.5rem" }}>
-                        <div className="detail-grid">
-                          {/* Fan Specifications Card */}
-                          <div className="detail-card">
-                            <h4>Fan Specifications</h4>
-                            <div className="detail-row">
-                              <span className="detail-label">
-                                Input Density
-                              </span>
-                              <span className="detail-value">
-                                {summaryFields.InputDensity || "-"}
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">Blades</span>
-                              <span className="detail-value">
-                                {blades || "-"}
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">Impeller</span>
-                              <span className="detail-value">{imp || "-"}</span>
-                            </div>
+              return (
+                <div key={idx}>
+                  {/* Performance Data Section - Only show when activeTab is 'performance' */}
+                  {activeTab === "performance" && (
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <div className="detail-grid">
+                        {/* Fan Specifications Card */}
+                        <div className="detail-card">
+                          <h4>Fan Specifications</h4>
+                          <div className="detail-row">
+                            <span className="detail-label">Input Density</span>
+                            <span className="detail-value">
+                              {summaryFields.InputDensity || "-"}
+                            </span>
                           </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Blades</span>
+                            <span className="detail-value">
+                              {blades || "-"}
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Impeller</span>
+                            <span className="detail-value">{imp || "-"}</span>
+                          </div>
+                        </div>
 
-                          {/* Motor Details Card */}
-                          <div className="detail-card">
-                            <h4>Motor Details</h4>
-                            <div className="detail-row">
-                              <span className="detail-label">Motor Model</span>
-                              <span className="detail-value">
-                                {motor?.model || "-"}
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">Power (kW)</span>
-                              <span className="detail-value">
-                                {formatValue(motor?.powerKW)}
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">No. of Poles</span>
-                              <span className="detail-value">
-                                {formatValue(motor?.NoPoles)}
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">
-                                Volt / Phase / Freq
-                              </span>
-                              <span className="detail-value">
-                                {motor?.Phase === 1
-                                  ? "220"
-                                  : motor?.Phase === 3
-                                  ? "380"
-                                  : "-"}{" "}
-                                / {motor?.Phase || "-"} / 50 Hz
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">
-                                Motor Efficiency
-                              </span>
-                              <span className="detail-value">
-                                {motorEffAvg
-                                  ? `${(motorEffAvg * 100).toFixed(2)}%`
-                                  : "-"}
-                              </span>
-                            </div>
-                            <div className="detail-row">
-                              <span className="detail-label">
-                                Insulation Class
-                              </span>
-                              <span className="detail-value">
-                                {motor?.insClass || "-"}
-                              </span>
-                            </div>
+                        {/* Motor Details Card */}
+                        <div className="detail-card">
+                          <h4>Motor Details</h4>
+                          <div className="detail-row">
+                            <span className="detail-label">Motor Model</span>
+                            <span className="detail-value">
+                              {motor?.model || "-"}
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Power (kW)</span>
+                            <span className="detail-value">
+                              {formatValue(motor?.powerKW)}
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">No. of Poles</span>
+                            <span className="detail-value">
+                              {formatValue(motor?.NoPoles)}
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              Volt / Phase / Freq
+                            </span>
+                            <span className="detail-value">
+                              {motor?.Phase === 1
+                                ? "220"
+                                : motor?.Phase === 3
+                                ? "380"
+                                : "-"}{" "}
+                              / {motor?.Phase || "-"} / 50 Hz
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              Motor Efficiency
+                            </span>
+                            <span className="detail-value">
+                              {motorEffAvg
+                                ? `${(motorEffAvg * 100).toFixed(2)}%`
+                                : "-"}
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              Insulation Class
+                            </span>
+                            <span className="detail-value">
+                              {motor?.insClass || "-"}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {/* Fan Curve Section - Only show when activeTab is 'curve' */}
-                    {activeTab === "curve" && (
-                      <div style={{ marginBottom: "1.5rem" }}>
+                  {/* Fan Curve Section - Only show when activeTab is 'curve' */}
+                  {activeTab === "curve" && (
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      <div
+                        className="detail-card"
+                        style={{ position: "relative" }}
+                      >
+                        <h4>{graphTypes[currentGraphIndex].name}</h4>
                         <div
-                          className="detail-card"
-                          style={{ position: "relative" }}
+                          style={{
+                            width: "100%",
+                            height: "400px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
                         >
-                          <h4>{graphTypes[currentGraphIndex].name}</h4>
-                          <div
+                          <ResponsiveContainer width="100%" height="100%">
+                            {(() => {
+                              const currentGraph =
+                                graphTypes[currentGraphIndex];
+                              const airflowData =
+                                item[currentGraph.airflowKey] || [];
+                              const yData = item[currentGraph.dataKey] || [];
+
+                              // Filter out null/undefined values and sort by airflow
+                              const validIndices = [];
+                              for (let i = 0; i < airflowData.length; i++) {
+                                if (
+                                  airflowData[i] != null &&
+                                  yData[i] != null &&
+                                  !isNaN(airflowData[i]) &&
+                                  !isNaN(yData[i])
+                                ) {
+                                  validIndices.push(i);
+                                }
+                              }
+
+                              // Sort indices by airflow value
+                              validIndices.sort(
+                                (a, b) => airflowData[a] - airflowData[b]
+                              );
+
+                              // Create sorted arrays
+                              const xArray = validIndices.map((i) =>
+                                Number(airflowData[i])
+                              );
+                              const yArray = validIndices.map(
+                                (i) =>
+                                  Number(yData[i]) *
+                                  (currentGraph.multiplier || 1)
+                              );
+
+                              // Apply piecewise cubic interpolation (same as backend)
+                              const interpolatedData =
+                                xArray.length >= 2
+                                  ? cubicSplineInterpolation(
+                                      xArray,
+                                      yArray,
+                                      100
+                                    )
+                                  : xArray.map((x, i) => ({
+                                      x,
+                                      y: yArray[i],
+                                    }));
+
+                              return (
+                                <LineChart
+                                  data={interpolatedData}
+                                  margin={{
+                                    top: 20,
+                                    right: 40,
+                                    left: 60,
+                                    bottom: 50,
+                                  }}
+                                >
+                                  <XAxis
+                                    dataKey="x"
+                                    stroke="#94a3b8"
+                                    tick={{ fill: "#94a3b8" }}
+                                    label={{
+                                      value: `Airflow (${
+                                        units?.airFlow || "CFM"
+                                      })`,
+                                      position: "insideBottom",
+                                      offset: -10,
+                                      fill: "#e2e8f0",
+                                      style: {
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                      },
+                                    }}
+                                  />
+                                  <YAxis
+                                    stroke="#94a3b8"
+                                    tick={{ fill: "#94a3b8" }}
+                                    label={{
+                                      value: `${currentGraph.name} (${currentGraph.unit})`,
+                                      angle: -90,
+                                      position: "insideLeft",
+                                      offset: 0,
+                                      fill: "#e2e8f0",
+                                      style: {
+                                        fontSize: "14px",
+                                        fontWeight: "500",
+                                        textAnchor: "middle",
+                                      },
+                                    }}
+                                  />
+                                  <Tooltip
+                                    contentStyle={{
+                                      backgroundColor: "#1e293b",
+                                      border: "1px solid #334155",
+                                      borderRadius: "8px",
+                                      color: "#e2e8f0",
+                                    }}
+                                    formatter={(value) => [
+                                      value.toFixed(2),
+                                      currentGraph.name,
+                                    ]}
+                                    labelFormatter={(label) =>
+                                      `Airflow: ${label.toFixed(2)}`
+                                    }
+                                  />
+                                  <Line
+                                    type="monotone"
+                                    dataKey="y"
+                                    stroke={currentGraph.color}
+                                    strokeWidth={3}
+                                    dot={{ fill: currentGraph.color, r: 3 }}
+                                    activeDot={{
+                                      r: 6,
+                                      fill: currentGraph.color,
+                                    }}
+                                    isAnimationActive={true}
+                                  />
+                                </LineChart>
+                              );
+                            })()}
+                          </ResponsiveContainer>
+                        </div>
+                        {/* Arrow Navigation Buttons */}
+                        <div
+                          style={{
+                            position: "absolute",
+                            bottom: "0.5rem",
+                            right: "1.5rem",
+                            display: "flex",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          <button
+                            onClick={handlePrevGraph}
                             style={{
-                              width: "100%",
-                              height: "400px",
+                              background: "#3b82f6",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "50%",
+                              width: "40px",
+                              height: "40px",
+                              cursor: "pointer",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
+                              fontSize: "1.25rem",
+                              transition: "background 0.2s",
                             }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = "#2563eb")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = "#3b82f6")
+                            }
                           >
-                            <ResponsiveContainer width="100%" height="100%">
-                              {(() => {
-                                const currentGraph =
-                                  graphTypes[currentGraphIndex];
-                                const airflowData =
-                                  item[currentGraph.airflowKey] || [];
-                                const yData = item[currentGraph.dataKey] || [];
-
-                                // Filter out null/undefined values and sort by airflow
-                                const validIndices = [];
-                                for (let i = 0; i < airflowData.length; i++) {
-                                  if (
-                                    airflowData[i] != null &&
-                                    yData[i] != null &&
-                                    !isNaN(airflowData[i]) &&
-                                    !isNaN(yData[i])
-                                  ) {
-                                    validIndices.push(i);
-                                  }
-                                }
-
-                                // Sort indices by airflow value
-                                validIndices.sort(
-                                  (a, b) => airflowData[a] - airflowData[b]
-                                );
-
-                                // Create sorted arrays
-                                const xArray = validIndices.map((i) =>
-                                  Number(airflowData[i])
-                                );
-                                const yArray = validIndices.map(
-                                  (i) =>
-                                    Number(yData[i]) *
-                                    (currentGraph.multiplier || 1)
-                                );
-
-                                // Apply piecewise cubic interpolation (same as backend)
-                                const interpolatedData =
-                                  xArray.length >= 2
-                                    ? cubicSplineInterpolation(
-                                        xArray,
-                                        yArray,
-                                        100
-                                      )
-                                    : xArray.map((x, i) => ({
-                                        x,
-                                        y: yArray[i],
-                                      }));
-
-                                return (
-                                  <LineChart
-                                    data={interpolatedData}
-                                    margin={{
-                                      top: 20,
-                                      right: 40,
-                                      left: 60,
-                                      bottom: 50,
-                                    }}
-                                  >
-                                    <XAxis
-                                      dataKey="x"
-                                      stroke="#94a3b8"
-                                      tick={{ fill: "#94a3b8" }}
-                                      label={{
-                                        value: `Airflow (${
-                                          units?.airFlow || "CFM"
-                                        })`,
-                                        position: "insideBottom",
-                                        offset: -10,
-                                        fill: "#e2e8f0",
-                                        style: {
-                                          fontSize: "14px",
-                                          fontWeight: "500",
-                                        },
-                                      }}
-                                    />
-                                    <YAxis
-                                      stroke="#94a3b8"
-                                      tick={{ fill: "#94a3b8" }}
-                                      label={{
-                                        value: `${currentGraph.name} (${currentGraph.unit})`,
-                                        angle: -90,
-                                        position: "insideLeft",
-                                        offset: 0,
-                                        fill: "#e2e8f0",
-                                        style: {
-                                          fontSize: "14px",
-                                          fontWeight: "500",
-                                          textAnchor: "middle",
-                                        },
-                                      }}
-                                    />
-                                    <Tooltip
-                                      contentStyle={{
-                                        backgroundColor: "#1e293b",
-                                        border: "1px solid #334155",
-                                        borderRadius: "8px",
-                                        color: "#e2e8f0",
-                                      }}
-                                      formatter={(value) => [
-                                        value.toFixed(2),
-                                        currentGraph.name,
-                                      ]}
-                                      labelFormatter={(label) =>
-                                        `Airflow: ${label.toFixed(2)}`
-                                      }
-                                    />
-                                    <Line
-                                      type="monotone"
-                                      dataKey="y"
-                                      stroke={currentGraph.color}
-                                      strokeWidth={3}
-                                      dot={{ fill: currentGraph.color, r: 3 }}
-                                      activeDot={{
-                                        r: 6,
-                                        fill: currentGraph.color,
-                                      }}
-                                      isAnimationActive={true}
-                                    />
-                                  </LineChart>
-                                );
-                              })()}
-                            </ResponsiveContainer>
-                          </div>
-                          {/* Arrow Navigation Buttons */}
-                          <div
+                            ←
+                          </button>
+                          <button
+                            onClick={handleNextGraph}
                             style={{
-                              position: "absolute",
-                              bottom: "0.5rem",
-                              right: "1.5rem",
+                              background: "#3b82f6",
+                              color: "white",
+                              border: "none",
+                              borderRadius: "50%",
+                              width: "40px",
+                              height: "40px",
+                              cursor: "pointer",
                               display: "flex",
-                              gap: "0.5rem",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "1.25rem",
+                              transition: "background 0.2s",
                             }}
+                            onMouseEnter={(e) =>
+                              (e.target.style.background = "#2563eb")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.target.style.background = "#3b82f6")
+                            }
                           >
-                            <button
-                              onClick={handlePrevGraph}
-                              style={{
-                                background: "#3b82f6",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "50%",
-                                width: "40px",
-                                height: "40px",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "1.25rem",
-                                transition: "background 0.2s",
-                              }}
-                              onMouseEnter={(e) =>
-                                (e.target.style.background = "#2563eb")
-                              }
-                              onMouseLeave={(e) =>
-                                (e.target.style.background = "#3b82f6")
-                              }
-                            >
-                              ←
-                            </button>
-                            <button
-                              onClick={handleNextGraph}
-                              style={{
-                                background: "#3b82f6",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "50%",
-                                width: "40px",
-                                height: "40px",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "1.25rem",
-                                transition: "background 0.2s",
-                              }}
-                              onMouseEnter={(e) =>
-                                (e.target.style.background = "#2563eb")
-                              }
-                              onMouseLeave={(e) =>
-                                (e.target.style.background = "#3b82f6")
-                              }
-                            >
-                              →
-                            </button>
-                          </div>
+                            →
+                          </button>
                         </div>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {/* Noise Graph Section - Only show when activeTab is 'noise' */}
-                    {activeTab === "noise" && (
-                      <div style={{ marginBottom: "1.5rem" }}>
-                        {(() => {
-                          const predictions = item.predictions || {};
-                          const fanInputPower = predictions.FanInputPowerPred;
-                          const staticPressure = predictions.StaticPressurePred;
+                  {/* Noise Graph Section - Only show when activeTab is 'noise' */}
+                  {activeTab === "noise" && (
+                    <div style={{ marginBottom: "1.5rem" }}>
+                      {(() => {
+                        const predictions = item.predictions || {};
+                        const fanInputPower = predictions.FanInputPowerPred;
+                        const staticPressure = predictions.StaticPressurePred;
 
-                          // Get motor efficiency from matched motor
-                          let motorEfficiency = 0.85;
-                          if (
-                            motor &&
-                            Array.isArray(motor.effCurve) &&
-                            motor.effCurve.length > 0
-                          ) {
-                            motorEfficiency =
-                              motor.effCurve.reduce((a, b) => a + b, 0) /
-                              motor.effCurve.length;
-                          }
+                        // Get motor efficiency from matched motor
+                        let motorEfficiency = 0.85;
+                        if (
+                          motor &&
+                          Array.isArray(motor.effCurve) &&
+                          motor.effCurve.length > 0
+                        ) {
+                          motorEfficiency =
+                            motor.effCurve.reduce((a, b) => a + b, 0) /
+                            motor.effCurve.length;
+                        }
 
-                          // Get SPF and sound data from user input
-                          const spf = input?.SPF || 5;
-                          const directivityFactor =
-                            input?.directivityFactor || 2;
-                          const distanceFromSource =
-                            input?.distanceFromSource || 1;
+                        // Get SPF and sound data from user input
+                        const spf = input?.SPF || 5;
+                        const directivityFactor = input?.directivityFactor || 2;
+                        const distanceFromSource =
+                          input?.distanceFromSource || 1;
 
-                          const noiseData = calculateSoundPowerSpectrum(
-                            fanInputPower,
-                            staticPressure,
-                            motorEfficiency,
-                            spf,
-                            directivityFactor,
-                            distanceFromSource
-                          );
+                        const noiseData = calculateSoundPowerSpectrum(
+                          fanInputPower,
+                          staticPressure,
+                          motorEfficiency,
+                          spf,
+                          directivityFactor,
+                          distanceFromSource
+                        );
 
-                          if (!noiseData) {
-                            return (
-                              <div
-                                className="detail-card"
-                                style={{
-                                  padding: "2rem",
-                                  textAlign: "center",
-                                  color: "#94a3b8",
-                                }}
-                              >
-                                <p>
-                                  Unable to calculate noise data. Missing fan
-                                  input power or static pressure values.
-                                </p>
-                              </div>
-                            );
-                          }
-
-                          // Colors for bars
-                          const lwBarColors = [
-                            "#3b82f6",
-                            "#2563eb",
-                            "#1d4ed8",
-                            "#1e40af",
-                            "#6366f1",
-                            "#4f46e5",
-                            "#4338ca",
-                            "#3730a3",
-                          ];
-                          const lpBarColors = [
-                            "#10b981",
-                            "#059669",
-                            "#047857",
-                            "#065f46",
-                            "#14b8a6",
-                            "#0d9488",
-                            "#0f766e",
-                            "#115e59",
-                          ];
-
+                        if (!noiseData) {
                           return (
-                            <>
-                              {/* Summary Cards */}
-                              <div
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns:
-                                    "repeat(auto-fit, minmax(150px, 1fr))",
-                                  gap: "1rem",
-                                  marginBottom: "1.5rem",
-                                }}
-                              >
-                                <div
-                                  className="detail-card"
-                                  style={{
-                                    padding: "1rem",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      color: "#94a3b8",
-                                      fontSize: "0.75rem",
-                                      marginBottom: "0.25rem",
-                                    }}
-                                  >
-                                    LW(A)
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: "#3b82f6",
-                                      fontSize: "1.5rem",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {noiseData.lwA}{" "}
-                                    <span
-                                      style={{
-                                        fontSize: "0.75rem",
-                                        color: "#94a3b8",
-                                      }}
-                                    >
-                                      dB(A)
-                                    </span>
-                                  </div>
-                                </div>
-                                <div
-                                  className="detail-card"
-                                  style={{
-                                    padding: "1rem",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      color: "#94a3b8",
-                                      fontSize: "0.75rem",
-                                      marginBottom: "0.25rem",
-                                    }}
-                                  >
-                                    LP(A)
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: "#10b981",
-                                      fontSize: "1.5rem",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {noiseData.lpA}{" "}
-                                    <span
-                                      style={{
-                                        fontSize: "0.75rem",
-                                        color: "#94a3b8",
-                                      }}
-                                    >
-                                      dB(A)
-                                    </span>
-                                  </div>
-                                </div>
-                                <div
-                                  className="detail-card"
-                                  style={{
-                                    padding: "1rem",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      color: "#94a3b8",
-                                      fontSize: "0.75rem",
-                                      marginBottom: "0.25rem",
-                                    }}
-                                  >
-                                    Motor Input Power
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: "#8b5cf6",
-                                      fontSize: "1.25rem",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {noiseData.motorInputPower}{" "}
-                                    <span
-                                      style={{
-                                        fontSize: "0.75rem",
-                                        color: "#94a3b8",
-                                      }}
-                                    >
-                                      kW
-                                    </span>
-                                  </div>
-                                </div>
-                                <div
-                                  className="detail-card"
-                                  style={{
-                                    padding: "1rem",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      color: "#94a3b8",
-                                      fontSize: "0.75rem",
-                                      marginBottom: "0.25rem",
-                                    }}
-                                  >
-                                    Directivity (Q)
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: "#f59e0b",
-                                      fontSize: "1.25rem",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {noiseData.Q}
-                                  </div>
-                                </div>
-                                <div
-                                  className="detail-card"
-                                  style={{
-                                    padding: "1rem",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      color: "#94a3b8",
-                                      fontSize: "0.75rem",
-                                      marginBottom: "0.25rem",
-                                    }}
-                                  >
-                                    Distance (r)
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: "#ec4899",
-                                      fontSize: "1.25rem",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {noiseData.r}{" "}
-                                    <span
-                                      style={{
-                                        fontSize: "0.75rem",
-                                        color: "#94a3b8",
-                                      }}
-                                    >
-                                      m
-                                    </span>
-                                  </div>
-                                </div>
-                                <div
-                                  className="detail-card"
-                                  style={{
-                                    padding: "1rem",
-                                    textAlign: "center",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      color: "#94a3b8",
-                                      fontSize: "0.75rem",
-                                      marginBottom: "0.25rem",
-                                    }}
-                                  >
-                                    Motor Efficiency
-                                  </div>
-                                  <div
-                                    style={{
-                                      color: "#06b6d4",
-                                      fontSize: "1.25rem",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {(motorEfficiency * 100).toFixed(1)}{" "}
-                                    <span
-                                      style={{
-                                        fontSize: "0.75rem",
-                                        color: "#94a3b8",
-                                      }}
-                                    >
-                                      %
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Two Graphs Side by Side */}
-                              <div
-                                style={{
-                                  display: "grid",
-                                  gridTemplateColumns:
-                                    "repeat(auto-fit, minmax(400px, 1fr))",
-                                  gap: "1.5rem",
-                                }}
-                              >
-                                {/* LW(A) Graph */}
-                                <div className="detail-card">
-                                  <h4>Power Spectrum of the sound power</h4>
-                                  <div
-                                    style={{ width: "100%", height: "350px" }}
-                                  >
-                                    <ResponsiveContainer
-                                      width="100%"
-                                      height="100%"
-                                    >
-                                      <BarChart
-                                        data={noiseData.lwSpectrum}
-                                        margin={{
-                                          top: 20,
-                                          right: 30,
-                                          left: 50,
-                                          bottom: 50,
-                                        }}
-                                      >
-                                        <CartesianGrid
-                                          strokeDasharray="3 3"
-                                          stroke="#334155"
-                                        />
-                                        <XAxis
-                                          dataKey="frequency"
-                                          stroke="#94a3b8"
-                                          tick={{
-                                            fill: "#94a3b8",
-                                            fontSize: 11,
-                                          }}
-                                          label={{
-                                            value: "Frequency",
-                                            position: "insideBottom",
-                                            offset: -10,
-                                            fill: "#e2e8f0",
-                                            style: { fontSize: "12px" },
-                                          }}
-                                        />
-                                        <YAxis
-                                          stroke="#94a3b8"
-                                          tick={{
-                                            fill: "#94a3b8",
-                                            fontSize: 11,
-                                          }}
-                                          domain={["auto", "auto"]}
-                                          label={{
-                                            value: "LW (dB)",
-                                            angle: -90,
-                                            position: "insideLeft",
-                                            fill: "#e2e8f0",
-                                            style: {
-                                              fontSize: "12px",
-                                              textAnchor: "middle",
-                                            },
-                                          }}
-                                        />
-                                        <Tooltip
-                                          contentStyle={{
-                                            backgroundColor: "#1e293b",
-                                            border: "1px solid #334155",
-                                            borderRadius: "8px",
-                                            color: "#e2e8f0",
-                                          }}
-                                          formatter={(value) => [
-                                            `${value} dB`,
-                                            "LW",
-                                          ]}
-                                          labelFormatter={(label) =>
-                                            `Frequency: ${label}`
-                                          }
-                                        />
-                                        <Bar
-                                          dataKey="soundPower"
-                                          radius={[4, 4, 0, 0]}
-                                        >
-                                          {noiseData.lwSpectrum.map(
-                                            (entry, index) => (
-                                              <Cell
-                                                key={`lw-cell-${index}`}
-                                                fill={
-                                                  lwBarColors[
-                                                    index % lwBarColors.length
-                                                  ]
-                                                }
-                                              />
-                                            )
-                                          )}
-                                        </Bar>
-                                      </BarChart>
-                                    </ResponsiveContainer>
-                                  </div>
-                                </div>
-
-                                {/* LP(A) Graph */}
-                                <div className="detail-card">
-                                  <h4>Power Spectrum of the sound pressure</h4>
-                                  <div
-                                    style={{ width: "100%", height: "350px" }}
-                                  >
-                                    <ResponsiveContainer
-                                      width="100%"
-                                      height="100%"
-                                    >
-                                      <BarChart
-                                        data={noiseData.lpSpectrum}
-                                        margin={{
-                                          top: 20,
-                                          right: 30,
-                                          left: 50,
-                                          bottom: 50,
-                                        }}
-                                      >
-                                        <CartesianGrid
-                                          strokeDasharray="3 3"
-                                          stroke="#334155"
-                                        />
-                                        <XAxis
-                                          dataKey="frequency"
-                                          stroke="#94a3b8"
-                                          tick={{
-                                            fill: "#94a3b8",
-                                            fontSize: 11,
-                                          }}
-                                          label={{
-                                            value: "Frequency",
-                                            position: "insideBottom",
-                                            offset: -10,
-                                            fill: "#e2e8f0",
-                                            style: { fontSize: "12px" },
-                                          }}
-                                        />
-                                        <YAxis
-                                          stroke="#94a3b8"
-                                          tick={{
-                                            fill: "#94a3b8",
-                                            fontSize: 11,
-                                          }}
-                                          domain={["auto", "auto"]}
-                                          label={{
-                                            value: "LP (dB)",
-                                            angle: -90,
-                                            position: "insideLeft",
-                                            fill: "#e2e8f0",
-                                            style: {
-                                              fontSize: "12px",
-                                              textAnchor: "middle",
-                                            },
-                                          }}
-                                        />
-                                        <Tooltip
-                                          contentStyle={{
-                                            backgroundColor: "#1e293b",
-                                            border: "1px solid #334155",
-                                            borderRadius: "8px",
-                                            color: "#e2e8f0",
-                                          }}
-                                          formatter={(value) => [
-                                            `${value} dB`,
-                                            "LP",
-                                          ]}
-                                          labelFormatter={(label) =>
-                                            `Frequency: ${label}`
-                                          }
-                                        />
-                                        <Bar
-                                          dataKey="soundPressure"
-                                          radius={[4, 4, 0, 0]}
-                                        >
-                                          {noiseData.lpSpectrum.map(
-                                            (entry, index) => (
-                                              <Cell
-                                                key={`lp-cell-${index}`}
-                                                fill={
-                                                  lpBarColors[
-                                                    index % lpBarColors.length
-                                                  ]
-                                                }
-                                              />
-                                            )
-                                          )}
-                                        </Bar>
-                                      </BarChart>
-                                    </ResponsiveContainer>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Combined Data Table */}
-                              <div
-                                className="detail-card"
-                                style={{ marginTop: "1.5rem" }}
-                              >
-                                <h4>Octave Band Data</h4>
-                                <div style={{ overflowX: "auto" }}>
-                                  <table
-                                    style={{
-                                      width: "100%",
-                                      borderCollapse: "collapse",
-                                      fontSize: "0.875rem",
-                                    }}
-                                  >
-                                    <thead>
-                                      <tr
-                                        style={{
-                                          borderBottom: "2px solid #334155",
-                                        }}
-                                      >
-                                        <th
-                                          style={{
-                                            padding: "0.75rem",
-                                            textAlign: "center",
-                                            color: "#94a3b8",
-                                          }}
-                                        >
-                                          Frequency
-                                        </th>
-                                        {noiseData.lwSpectrum.map((band, i) => (
-                                          <th
-                                            key={i}
-                                            style={{
-                                              padding: "0.75rem",
-                                              textAlign: "center",
-                                              color: "#e2e8f0",
-                                            }}
-                                          >
-                                            {band.frequency}
-                                          </th>
-                                        ))}
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      <tr
-                                        style={{
-                                          borderBottom: "1px solid #334155",
-                                        }}
-                                      >
-                                        <td
-                                          style={{
-                                            padding: "0.75rem",
-                                            textAlign: "center",
-                                            color: "#94a3b8",
-                                          }}
-                                        >
-                                          LW (dB)
-                                        </td>
-                                        {noiseData.lwSpectrum.map((band, i) => (
-                                          <td
-                                            key={i}
-                                            style={{
-                                              padding: "0.75rem",
-                                              textAlign: "center",
-                                              color: "#3b82f6",
-                                              fontWeight: "600",
-                                            }}
-                                          >
-                                            {band.soundPower}
-                                          </td>
-                                        ))}
-                                      </tr>
-                                      <tr
-                                        style={{
-                                          borderBottom: "1px solid #334155",
-                                        }}
-                                      >
-                                        <td
-                                          style={{
-                                            padding: "0.75rem",
-                                            textAlign: "center",
-                                            color: "#94a3b8",
-                                          }}
-                                        >
-                                          LP (dB)
-                                        </td>
-                                        {noiseData.lpSpectrum.map((band, i) => (
-                                          <td
-                                            key={i}
-                                            style={{
-                                              padding: "0.75rem",
-                                              textAlign: "center",
-                                              color: "#10b981",
-                                              fontWeight: "600",
-                                            }}
-                                          >
-                                            {band.soundPressure}
-                                          </td>
-                                        ))}
-                                      </tr>
-                                    </tbody>
-                                  </table>
-                                </div>
-                              </div>
-
-                              {/* Formula Reference */}
-                              <div
-                                className="detail-card"
-                                style={{ marginTop: "1.5rem" }}
-                              >
-                                <h4>Formulas</h4>
-                                <div
-                                  style={{
-                                    fontSize: "0.875rem",
-                                    color: "#94a3b8",
-                                    lineHeight: "2",
-                                  }}
-                                >
-                                  <div>
-                                    <strong style={{ color: "#e2e8f0" }}>
-                                      Motor Input Power
-                                    </strong>{" "}
-                                    = (Fan Input Power / Motor Efficiency) × (1
-                                    + SPF)
-                                  </div>
-                                  <div>
-                                    <strong style={{ color: "#e2e8f0" }}>
-                                      LW(A)
-                                    </strong>{" "}
-                                    = 62 + 10×log₁₀(Motor Input Power) +
-                                    10×log₁₀(Static Pressure)
-                                  </div>
-                                  <div>
-                                    <strong style={{ color: "#e2e8f0" }}>
-                                      LP(A)
-                                    </strong>{" "}
-                                    = LW(A) − |10×log₁₀(Q / (4×π×r²))|
-                                  </div>
-                                  <div
-                                    style={{
-                                      marginTop: "0.5rem",
-                                      color: "#64748b",
-                                      fontSize: "0.8rem",
-                                    }}
-                                  >
-                                    Where: Q = Directivity Factor ({noiseData.Q}
-                                    ), r = Distance ({noiseData.r}m)
-                                  </div>
-                                </div>
-                              </div>
-                            </>
+                            <div
+                              className="detail-card"
+                              style={{
+                                padding: "2rem",
+                                textAlign: "center",
+                                color: "#94a3b8",
+                              }}
+                            >
+                              <p>
+                                Unable to calculate noise data. Missing fan
+                                input power or static pressure values.
+                              </p>
+                            </div>
                           );
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
+                        }
+
+                        // Colors for bars
+                        const lwBarColors = [
+                          "#3b82f6",
+                          "#2563eb",
+                          "#1d4ed8",
+                          "#1e40af",
+                          "#6366f1",
+                          "#4f46e5",
+                          "#4338ca",
+                          "#3730a3",
+                        ];
+                        const lpBarColors = [
+                          "#10b981",
+                          "#059669",
+                          "#047857",
+                          "#065f46",
+                          "#14b8a6",
+                          "#0d9488",
+                          "#0f766e",
+                          "#115e59",
+                        ];
+
+                        return (
+                          <>
+                            {/* Summary Cards */}
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                  "repeat(auto-fit, minmax(150px, 1fr))",
+                                gap: "1rem",
+                                marginBottom: "1.5rem",
+                              }}
+                            >
+                              <div
+                                className="detail-card"
+                                style={{
+                                  padding: "1rem",
+                                  textAlign: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    color: "#94a3b8",
+                                    fontSize: "0.75rem",
+                                    marginBottom: "0.25rem",
+                                  }}
+                                >
+                                  LW(A)
+                                </div>
+                                <div
+                                  style={{
+                                    color: "#3b82f6",
+                                    fontSize: "1.5rem",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  {noiseData.lwA}{" "}
+                                  <span
+                                    style={{
+                                      fontSize: "0.75rem",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    dB(A)
+                                  </span>
+                                </div>
+                              </div>
+                              <div
+                                className="detail-card"
+                                style={{
+                                  padding: "1rem",
+                                  textAlign: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    color: "#94a3b8",
+                                    fontSize: "0.75rem",
+                                    marginBottom: "0.25rem",
+                                  }}
+                                >
+                                  LP(A)
+                                </div>
+                                <div
+                                  style={{
+                                    color: "#10b981",
+                                    fontSize: "1.5rem",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  {noiseData.lpA}{" "}
+                                  <span
+                                    style={{
+                                      fontSize: "0.75rem",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    dB(A)
+                                  </span>
+                                </div>
+                              </div>
+                              <div
+                                className="detail-card"
+                                style={{
+                                  padding: "1rem",
+                                  textAlign: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    color: "#94a3b8",
+                                    fontSize: "0.75rem",
+                                    marginBottom: "0.25rem",
+                                  }}
+                                >
+                                  Motor Input Power
+                                </div>
+                                <div
+                                  style={{
+                                    color: "#8b5cf6",
+                                    fontSize: "1.25rem",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  {noiseData.motorInputPower}{" "}
+                                  <span
+                                    style={{
+                                      fontSize: "0.75rem",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    kW
+                                  </span>
+                                </div>
+                              </div>
+                              <div
+                                className="detail-card"
+                                style={{
+                                  padding: "1rem",
+                                  textAlign: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    color: "#94a3b8",
+                                    fontSize: "0.75rem",
+                                    marginBottom: "0.25rem",
+                                  }}
+                                >
+                                  Directivity (Q)
+                                </div>
+                                <div
+                                  style={{
+                                    color: "#f59e0b",
+                                    fontSize: "1.25rem",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  {noiseData.Q}
+                                </div>
+                              </div>
+                              <div
+                                className="detail-card"
+                                style={{
+                                  padding: "1rem",
+                                  textAlign: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    color: "#94a3b8",
+                                    fontSize: "0.75rem",
+                                    marginBottom: "0.25rem",
+                                  }}
+                                >
+                                  Distance (r)
+                                </div>
+                                <div
+                                  style={{
+                                    color: "#ec4899",
+                                    fontSize: "1.25rem",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  {noiseData.r}{" "}
+                                  <span
+                                    style={{
+                                      fontSize: "0.75rem",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    m
+                                  </span>
+                                </div>
+                              </div>
+                              <div
+                                className="detail-card"
+                                style={{
+                                  padding: "1rem",
+                                  textAlign: "center",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    color: "#94a3b8",
+                                    fontSize: "0.75rem",
+                                    marginBottom: "0.25rem",
+                                  }}
+                                >
+                                  Motor Efficiency
+                                </div>
+                                <div
+                                  style={{
+                                    color: "#06b6d4",
+                                    fontSize: "1.25rem",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  {(motorEfficiency * 100).toFixed(1)}{" "}
+                                  <span
+                                    style={{
+                                      fontSize: "0.75rem",
+                                      color: "#94a3b8",
+                                    }}
+                                  >
+                                    %
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Two Graphs Side by Side */}
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns:
+                                  "repeat(auto-fit, minmax(400px, 1fr))",
+                                gap: "1.5rem",
+                              }}
+                            >
+                              {/* LW(A) Graph */}
+                              <div className="detail-card">
+                                <h4>Power Spectrum of the sound power</h4>
+                                <div style={{ width: "100%", height: "350px" }}>
+                                  <ResponsiveContainer
+                                    width="100%"
+                                    height="100%"
+                                  >
+                                    <BarChart
+                                      data={noiseData.lwSpectrum}
+                                      margin={{
+                                        top: 20,
+                                        right: 30,
+                                        left: 50,
+                                        bottom: 50,
+                                      }}
+                                    >
+                                      <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke="#334155"
+                                      />
+                                      <XAxis
+                                        dataKey="frequency"
+                                        stroke="#94a3b8"
+                                        tick={{
+                                          fill: "#94a3b8",
+                                          fontSize: 11,
+                                        }}
+                                        label={{
+                                          value: "Frequency",
+                                          position: "insideBottom",
+                                          offset: -10,
+                                          fill: "#e2e8f0",
+                                          style: { fontSize: "12px" },
+                                        }}
+                                      />
+                                      <YAxis
+                                        stroke="#94a3b8"
+                                        tick={{
+                                          fill: "#94a3b8",
+                                          fontSize: 11,
+                                        }}
+                                        domain={["auto", "auto"]}
+                                        label={{
+                                          value: "LW (dB)",
+                                          angle: -90,
+                                          position: "insideLeft",
+                                          fill: "#e2e8f0",
+                                          style: {
+                                            fontSize: "12px",
+                                            textAnchor: "middle",
+                                          },
+                                        }}
+                                      />
+                                      <Tooltip
+                                        contentStyle={{
+                                          backgroundColor: "#1e293b",
+                                          border: "1px solid #334155",
+                                          borderRadius: "8px",
+                                          color: "#e2e8f0",
+                                        }}
+                                        formatter={(value) => [
+                                          `${value} dB`,
+                                          "LW",
+                                        ]}
+                                        labelFormatter={(label) =>
+                                          `Frequency: ${label}`
+                                        }
+                                      />
+                                      <Bar
+                                        dataKey="soundPower"
+                                        radius={[4, 4, 0, 0]}
+                                      >
+                                        {noiseData.lwSpectrum.map(
+                                          (entry, index) => (
+                                            <Cell
+                                              key={`lw-cell-${index}`}
+                                              fill={
+                                                lwBarColors[
+                                                  index % lwBarColors.length
+                                                ]
+                                              }
+                                            />
+                                          )
+                                        )}
+                                      </Bar>
+                                    </BarChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              </div>
+
+                              {/* LP(A) Graph */}
+                              <div className="detail-card">
+                                <h4>Power Spectrum of the sound pressure</h4>
+                                <div style={{ width: "100%", height: "350px" }}>
+                                  <ResponsiveContainer
+                                    width="100%"
+                                    height="100%"
+                                  >
+                                    <BarChart
+                                      data={noiseData.lpSpectrum}
+                                      margin={{
+                                        top: 20,
+                                        right: 30,
+                                        left: 50,
+                                        bottom: 50,
+                                      }}
+                                    >
+                                      <CartesianGrid
+                                        strokeDasharray="3 3"
+                                        stroke="#334155"
+                                      />
+                                      <XAxis
+                                        dataKey="frequency"
+                                        stroke="#94a3b8"
+                                        tick={{
+                                          fill: "#94a3b8",
+                                          fontSize: 11,
+                                        }}
+                                        label={{
+                                          value: "Frequency",
+                                          position: "insideBottom",
+                                          offset: -10,
+                                          fill: "#e2e8f0",
+                                          style: { fontSize: "12px" },
+                                        }}
+                                      />
+                                      <YAxis
+                                        stroke="#94a3b8"
+                                        tick={{
+                                          fill: "#94a3b8",
+                                          fontSize: 11,
+                                        }}
+                                        domain={["auto", "auto"]}
+                                        label={{
+                                          value: "LP (dB)",
+                                          angle: -90,
+                                          position: "insideLeft",
+                                          fill: "#e2e8f0",
+                                          style: {
+                                            fontSize: "12px",
+                                            textAnchor: "middle",
+                                          },
+                                        }}
+                                      />
+                                      <Tooltip
+                                        contentStyle={{
+                                          backgroundColor: "#1e293b",
+                                          border: "1px solid #334155",
+                                          borderRadius: "8px",
+                                          color: "#e2e8f0",
+                                        }}
+                                        formatter={(value) => [
+                                          `${value} dB`,
+                                          "LP",
+                                        ]}
+                                        labelFormatter={(label) =>
+                                          `Frequency: ${label}`
+                                        }
+                                      />
+                                      <Bar
+                                        dataKey="soundPressure"
+                                        radius={[4, 4, 0, 0]}
+                                      >
+                                        {noiseData.lpSpectrum.map(
+                                          (entry, index) => (
+                                            <Cell
+                                              key={`lp-cell-${index}`}
+                                              fill={
+                                                lpBarColors[
+                                                  index % lpBarColors.length
+                                                ]
+                                              }
+                                            />
+                                          )
+                                        )}
+                                      </Bar>
+                                    </BarChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Combined Data Table */}
+                            <div
+                              className="detail-card"
+                              style={{ marginTop: "1.5rem" }}
+                            >
+                              <h4>Octave Band Data</h4>
+                              <div style={{ overflowX: "auto" }}>
+                                <table
+                                  style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                    fontSize: "0.875rem",
+                                  }}
+                                >
+                                  <thead>
+                                    <tr
+                                      style={{
+                                        borderBottom: "2px solid #334155",
+                                      }}
+                                    >
+                                      <th
+                                        style={{
+                                          padding: "0.75rem",
+                                          textAlign: "center",
+                                          color: "#94a3b8",
+                                        }}
+                                      >
+                                        Frequency
+                                      </th>
+                                      {noiseData.lwSpectrum.map((band, i) => (
+                                        <th
+                                          key={i}
+                                          style={{
+                                            padding: "0.75rem",
+                                            textAlign: "center",
+                                            color: "#e2e8f0",
+                                          }}
+                                        >
+                                          {band.frequency}
+                                        </th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr
+                                      style={{
+                                        borderBottom: "1px solid #334155",
+                                      }}
+                                    >
+                                      <td
+                                        style={{
+                                          padding: "0.75rem",
+                                          textAlign: "center",
+                                          color: "#94a3b8",
+                                        }}
+                                      >
+                                        LW (dB)
+                                      </td>
+                                      {noiseData.lwSpectrum.map((band, i) => (
+                                        <td
+                                          key={i}
+                                          style={{
+                                            padding: "0.75rem",
+                                            textAlign: "center",
+                                            color: "#3b82f6",
+                                            fontWeight: "600",
+                                          }}
+                                        >
+                                          {band.soundPower}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                    <tr
+                                      style={{
+                                        borderBottom: "1px solid #334155",
+                                      }}
+                                    >
+                                      <td
+                                        style={{
+                                          padding: "0.75rem",
+                                          textAlign: "center",
+                                          color: "#94a3b8",
+                                        }}
+                                      >
+                                        LP (dB)
+                                      </td>
+                                      {noiseData.lpSpectrum.map((band, i) => (
+                                        <td
+                                          key={i}
+                                          style={{
+                                            padding: "0.75rem",
+                                            textAlign: "center",
+                                            color: "#10b981",
+                                            fontWeight: "600",
+                                          }}
+                                        >
+                                          {band.soundPressure}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+
+                            {/* Formula Reference */}
+                            <div
+                              className="detail-card"
+                              style={{ marginTop: "1.5rem" }}
+                            >
+                              <h4>Formulas</h4>
+                              <div
+                                style={{
+                                  fontSize: "0.875rem",
+                                  color: "#94a3b8",
+                                  lineHeight: "2",
+                                }}
+                              >
+                                <div>
+                                  <strong style={{ color: "#e2e8f0" }}>
+                                    Motor Input Power
+                                  </strong>{" "}
+                                  = (Fan Input Power / Motor Efficiency) × (1 +
+                                  SPF)
+                                </div>
+                                <div>
+                                  <strong style={{ color: "#e2e8f0" }}>
+                                    LW(A)
+                                  </strong>{" "}
+                                  = 62 + 10×log₁₀(Motor Input Power) +
+                                  10×log₁₀(Static Pressure)
+                                </div>
+                                <div>
+                                  <strong style={{ color: "#e2e8f0" }}>
+                                    LP(A)
+                                  </strong>{" "}
+                                  = LW(A) − |10×log₁₀(Q / (4×π×r²))|
+                                </div>
+                                <div
+                                  style={{
+                                    marginTop: "0.5rem",
+                                    color: "#64748b",
+                                    fontSize: "0.8rem",
+                                  }}
+                                >
+                                  Where: Q = Directivity Factor ({noiseData.Q}
+                                  ), r = Distance ({noiseData.r}m)
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 

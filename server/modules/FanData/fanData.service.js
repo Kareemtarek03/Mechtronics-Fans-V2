@@ -182,6 +182,7 @@ export async function processFanDataService(inputOptions) {
         velPressure: r.velPressure,
         staticPressure: r.staticPressure,
         fanInputPow: r.fanInputPow,
+        hubType: r.hubType,
         // keep some direct fields for compatibility
         bladesSymbol: r.bladesSymbol,
         bladesMaterial: r.bladesMaterial,
